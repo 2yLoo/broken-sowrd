@@ -8,8 +8,12 @@
 
 再如第17章，介绍Spring集成使用远程服务，从RMI到Hessian/Burlap，解决了RMI受防火墙限制的痛点，再到Spring HttpInvoker，解决了Hessian/Burlap序列化的局限性问题···
 
-个人认为这是一本很适合**初级Java开发者**的Spring使用指南。
+个人认为这是一本很适合**初级Java开发者**的Spring使用指南。我也前前后后花了1个月的空余时间学习了一次。
 
 Spring已经伴随Java开发多年，并在持续的发光发热。作为程序猿部队的一名新人，当我对Spring还不甚了解，仅能看到项目中有的东西，还没有对Spring的总体概念，阅读完这本书，收获颇多，对后期的实质工作也有极大的帮助。很有幸在一个恰当的时间收获了这本书的部分知识。
 
 下面我以该书目录为划分，对《Spring 实战》进行了一下自我总结。
+- [x] [Spring核心：DI与AOP](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/TheSpringCore.md)
+- [ ] [Spring Web应用](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringInWeb.md)
+- [ ] [Spring 后端](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringBackEnd.md)
+- [ ] [Spring 集成](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringIntegration.md)
