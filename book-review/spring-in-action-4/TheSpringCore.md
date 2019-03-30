@@ -162,7 +162,7 @@ Spring支持5种注解来指定切面：
 ```
 // 先定义一个具有提供七喜功能的售货机接口
 public interface VendingMachine {
-  public void give7Up(int num);  
+  void give7Up(int num);  
 }
 
 // 声明一个肥宅切面Bean
@@ -171,16 +171,16 @@ public class FatNerd {
 
   // 在此处声明我们的切点名，以方便下面的织入，并且此处可以将切点的参数应用到通知动作中
   @Pointcut(
-    "execution(** com.yy.VendingMachine.give7Up(int))" +
+    "execution(* com.yy.VendingMachine.give7Up(int))" +
     "&& args(num)")
   public void buy7up(int num) { }
 
   @After("buy7up(num)")
-  public void leave() {
+  public void leave(int num) {
     System.out.println("2y买" + num + "瓶快乐水~");
   }
 
-  @AfterReturning("buy7up()")
+  @AfterReturning("buy7up(num)")
   public void drink(int num) {
     System.out.println("2y成功买到" + num + "瓶快乐水~");
   }
@@ -190,7 +190,7 @@ public class FatNerd {
     System.out.println(num + "瓶快乐水都没有？辣鸡！");
   }
 
-  @AfterReturning("buy7up(num)")
+  @Around("buy7up(num)")
   public void drink(ProceedingJoinPoint jp, int num) {
   try {
     System.out.println("2y冷静的想想买瓶装还是罐装~");
@@ -217,8 +217,8 @@ public class FatNerd {
 
 至此我们的切面已经声明好了，并且从中我们可以看出切面方法是可以获取到切面传参的。但它还只是一个Bean，等着我们激活：
 ```
-@Configutarion
-@EnableAspectJAotuProxy
+@Configuration
+@EnableAspectJAutoProxy
 @ComponentScan
 public class FatNerdConfig {
 
