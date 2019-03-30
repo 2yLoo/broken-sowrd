@@ -1,10 +1,10 @@
 # 《Spring 实战（第4版）》 读后感
-### 前言
-《Spring 实战》从实际运用点切入，以丰富的示例讲解了开发过程中我们可能会遇到的Spring应用场景。
+![image](https://img3.doubanio.com/view/subject/l/public/s28607882.jpg)
+> 一份提高Java开发新人生产效率的指南
 
-本书以实例展开说明，深入浅出，并且每一部分内容与上下文有强关联性，作者循序渐进的为我们介绍了Spring的各种妙用。
+《Spring 实战》从实际运用点切入，以丰富的示例讲解了开发过程中我们可能会遇到的Spring应用场景。作者循序渐进的为我们介绍了Spring的各种妙用，并以实例展开说明，深入浅出的为各个知识点举例说明，具有很高的可读性，学习过程不易疲倦。
 
-例如本书的目录架构：作者首先围绕Spring的核心（DI、AOP）介绍了其背景及特性运用；又转到Web开发介绍了MVC的使用及对应用的保护（Spring Security）；再以后端运用为中心介绍了数据存储与调用安全；有了前端和后端的基础后，对Spring项目常见的集成场景进行了展开；最后，以Spring Boot作为本书的终章。
+例如本书的目录架构：作者首先围绕Spring的核心（DI、AOP）介绍了其背景及特性运用；又转到Web开发介绍了MVC的使用及对应用的保护（Spring Security）；再以后端运用为中心介绍了数据存储与调用安全；有了前端和后端的基础后，对Spring项目常见的集成场景进行了展开；最后，以Spring Boot作为本书的终章，它以Spring的视角，致力于简化Spring本身。
 
 再如第17章，介绍Spring集成使用远程服务，从RMI到Hessian/Burlap，解决了RMI受防火墙限制的痛点，再到Spring HttpInvoker，解决了Hessian/Burlap序列化的局限性问题···
 

@@ -1,17 +1,17 @@
 ## Broken Sword
-> 一份来自2yLoo的开发&学习脚印，取名来于**断剑重铸之日，骑士归来之时**
+> 一份来自2yLoo的开发&学习记录，取名来于**断剑重铸之日，骑士归来之时**
 
 ### **Java基础**
-- [x] 基础包装类
-- [x] ArrayList
-- [x] LinkedList
-- [x] HashMap
-- [x] HashSet
-- [x] LinkedHashMap
-- [x] LinkedHashSet
-- [x] TreeMap
-- [x] TreeSet
-- [x] PriorityQueue
+- [ ] 基础包装类
+- [ ] ArrayList
+- [ ] LinkedList
+- [ ] HashMap
+- [ ] HashSet
+- [ ] LinkedHashMap
+- [ ] LinkedHashSet
+- [ ] TreeMap
+- [ ] TreeSet
+- [ ] PriorityQueue
 
 ### **数据存储**
 - [ ] MySQL
@@ -26,6 +26,11 @@
 
 ### **项目实践**
 - [ ] ELKB日志收集
+- [ ] 容器化 - Docker
+
+### **错题集**
+
+- [ ] 收录部分开发过程中碰到的麻烦
 
 ### **联系作者**
 ***罗洋漾 yamolv@qq.com*** :bowtie:
