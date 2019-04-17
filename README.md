@@ -2,16 +2,11 @@
 > 一份来自2yLoo的开发&学习记录，取名来于**断剑重铸之日，骑士归来之时**
 
 ### **Java基础**
-- [ ] 基础包装类
-- [ ] ArrayList
-- [ ] LinkedList
-- [ ] HashMap
-- [ ] HashSet
-- [ ] LinkedHashMap
-- [ ] LinkedHashSet
-- [ ] TreeMap
-- [ ] TreeSet
-- [ ] PriorityQueue
+- [ ] 基础包装类(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
+- [ ] List(ArrayList, LinkedList)
+- [ ] Map(HashMap, LinkedHashMap, TreeMap)
+- [ ] Set(HashSet, LinkedHashSet, TreeSet)
+- [ ] Queue(PriorityQueue)
 
 ### **数据存储**
 - [ ] MySQL
