@@ -7,11 +7,6 @@
 
 以这样的方式我们可以创建一个数组List。作为一个继承（扩展）了Collection的接口，除了Collection中提供的方法，它规定了集合的顺序性。给集合中的元素添加了“顺序”的概念，因此我们可以通过索引来对集合进行访问与操作。
 
-## AbstractList
-TODO:对该类的介绍
-
-这是List的基本实现类，ArrayList与LinkedList都对其进一步扩展。
-
 ## ArrayList
 ArrayList是我们接触和应用最多（≠能力最强）的一个List实现类。
 
