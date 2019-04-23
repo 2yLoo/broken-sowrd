@@ -239,14 +239,190 @@ for (Map.Entry<String, String> entry : map.entrySet()) {
 ```
 
 我们也可通过遍历KeySet来逐个获取value值，但这样会带来更重的查询负担以及代码量，画蛇添足，完全不推荐：
+- 通过遍历key来获取value
+  ```
+  Iterator<String> iterator = map.keySet().iterator();
+  while (iterator.hasNext()) {
+      String next = iterator.next();
+      System.out.println(next + map.get(next));
+  }
+
+  for (String key : map.keySet()){
+      System.out.println(key + map.get(key));
+  }
+  ```
+
+## LinkedHashMap
+LinkedHashMap继承自HashMap，因此保证了Map的效率。不仅如此，**它通过双向链表维护了键值对的有序性，具体来说，是添加/访问有序性。**
+
+作为HashMap的扩展类（子类），LinkedHashMap大量重用的HashMap中的方法。除了HashMap提供的4个构造方法，它对外提供了额外的一种构造方法，以此来指定键值对排序依据：
 ```
-Iterator<String> iterator1 = map.keySet().iterator();
-while (iterator1.hasNext()) {
-    String next = iterator1.next();
-    System.out.println(next + map.get(next));
+public LinkedHashMap(int initialCapacity,
+                     float loadFactor,
+                     boolean accessOrder) {
+    super(initialCapacity, loadFactor);
+    this.accessOrder = accessOrder;
+}
+```
+accessOrder为false时，LinkedHashMap维护的顺序与添加顺序一致。false也为它的默认值。
+
+accessOrder为true时，LinkedHashMap维护的顺序与访问顺序一致。
+
+从例子出发，我们向一个LinkedHashMap中添加5个元素，并对第二个元素与第三个元素分别做访问、修改操作。
+
+先看该值为false时的map如何打印：
+```
+public static void main(String[] args) {
+    Map<String, String> map = new LinkedHashMap<>(16, 0.75f, false);
+    map.put("A", "1");
+    map.put("B", "2");
+    map.put("C", "3");
+    map.put("D", "4");
+    map.put("E", "5");
+    System.out.println("mp初始顺序：");
+    System.out.println(map.toString());
+    System.out.println("获取B的值：" + map.get("B"));
+    System.out.println("获取B后的map顺序：");
+    System.out.println(map.toString());
+    System.out.println("修改C的值：" + map.put("C", "33"));
+    System.out.println("修改C后的map顺序：");
+    System.out.println(map.toString());
 }
 
-for (String key : map.keySet()){
-    System.out.println(key + map.get(key));
+// 控制台输出：
+mp初始顺序：
+{A=1, B=2, C=3, D=4, E=5}
+获取B的值：2
+获取B后的map顺序：
+{A=1, B=2, C=3, D=4, E=5}
+修改C的值：3
+修改C后的map顺序：
+{A=1, B=2, C=33, D=4, E=5}
+```
+
+接着将accessOrder设置为true，再看其输出结果：
+```
+public static void main(String[] args) {
+    Map<String, String> map = new LinkedHashMap<>(16, 0.75f, true);
+    map.put("A", "1");
+    map.put("B", "2");
+    map.put("C", "3");
+    map.put("D", "4");
+    map.put("E", "5");
+    System.out.println("mp初始顺序：");
+    System.out.println(map.toString());
+    System.out.println("获取B的值：" + map.get("B"));
+    System.out.println("获取B后的map顺序：");
+    System.out.println(map.toString());
+    System.out.println("修改C的值：" + map.put("C", "33"));
+    System.out.println("修改C后的map顺序：");
+    System.out.println(map.toString());
+}
+
+// 控制台输出
+mp初始顺序：
+{A=1, B=2, C=3, D=4, E=5}
+获取B的值：2
+获取B后的map顺序：
+{A=1, C=3, D=4, E=5, B=2}
+修改C的值：3
+修改C后的map顺序：
+{A=1, D=4, E=5, B=2, C=33}
+```
+
+可以看出来，accessOrder的值为false时，其顺序为添加顺序，不会受到访问与修改操作的影响，而将其值改为true后，被访问/修改的元素都被放到了链表的尾端。
+
+### 在LinkedHashMap中重写的方法们
+##### afterNodeInsertion()
+这是维护LinkedHashMap中链表顺序性的第一个方法，此方法由HashMap的调用，目的是在新增节点时同步维护到链表中。
+
+为什么要把调用时机写到HashMap中呢？我认为这样做的好处是可以提高代码的复用率，因为其调用时机并不是在添加节点的方法执行后（如果是这样，此方法更像一个切面内的通知），而是在添加方法中的某一段逻辑下才执行。
+
+源码中下文的```afterNodeRemoval()```、```afterNodeAccess()```对维护链表顺序的实现方式也用到了此类实现方式。
+
+```
+void afterNodeInsertion(boolean evict) { // possibly remove eldest
+    LinkedHashMap.Entry<K,V> first;
+    if (evict && (first = head) != null && removeEldestEntry(first)) {
+        K key = first.key;
+        removeNode(hash(key), key, null, false, true);
+    }
 }
 ```
+
+##### afterNodeRemoval()
+这是维护链表顺序性的第二个方法，此方法在HashMap的```removeNode()```方法中调用，目的为同步删除链表中的该节点。在HashMap中该方法为一个空逻辑方法。
+```
+void afterNodeRemoval(Node<K,V> e) {
+    LinkedHashMap.Entry<K,V> p =
+        (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+    p.before = p.after = null;
+    if (b == null)
+        head = a;
+    else
+        b.after = a;
+    if (a == null)
+        tail = b;
+    else
+        a.before = b;
+}
+```
+
+##### afterNodeAccess()
+这是最后一个维护链表顺序的方法，前面提到我们可以通过构造器指定其链表顺序依据，此方法即在accessOrder为true时执行，以将访问的节点移动到链表尾部。
+
+与前两者不同的是，它在LinkedHashMap中也有调用。
+
+其执行逻辑如下：
+```
+void afterNodeAccess(Node<K,V> e) { // move node to last
+    LinkedHashMap.Entry<K,V> last;
+    if (accessOrder && (last = tail) != e) {
+        LinkedHashMap.Entry<K,V> p =
+            (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+        p.after = null;
+        if (b == null)
+            head = a;
+        else
+            b.after = a;
+        if (a != null)
+            a.before = b;
+        else
+            last = b;
+        if (last == null)
+            head = p;
+        else {
+            p.before = last;
+            last.after = p;
+        }
+        tail = p;
+        ++modCount;
+    }
+}
+```
+在LinkedHashMap中调用的两处代码为：
+```
+public V get(Object key) {
+    Node<K,V> e;
+    if ((e = getNode(hash(key), key)) == null)
+        return null;
+    if (accessOrder)
+        afterNodeAccess(e);
+    return e.value;
+}
+
+public V getOrDefault(Object key, V defaultValue) {
+   Node<K,V> e;
+   if ((e = getNode(hash(key), key)) == null)
+       return defaultValue;
+   if (accessOrder)
+       afterNodeAccess(e);
+   return e.value;
+}
+```
+这两处的调用另歪某人困惑，为什么不将它提取到HashMap中的对应方法下调用呢？
+
+##### containsValue()
+LinkedHashMap中通过遍历链表判断一个值是否存在，而HashMap中是对桶以及桶下的节点进行遍历。LinkedHashMap不用对空桶进行判断，效率高一丢丢。
+
+当然LinkedHashMap也有其他方法的重写，但维护链表顺序以及提高效率的方法以上述4个方法为主，有兴趣的童鞋可以翻看源码解锁更多姿势。
