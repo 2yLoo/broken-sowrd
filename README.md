@@ -1,9 +1,8 @@
 ## Broken Sword
-![](https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1556023644308&di=eb7b13a34bb4ac70889c22f539b8967b&imgtype=0&src=http%3A%2F%2Fask-fd.zol-img.com.cn%2Fg5%2FM00%2F06%2F01%2FChMkJ1oRWjOIfETPAALLARyKz9AAAiTHAPd9dsAAssZ401.jpg)
+<div align="center"><img src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1556023644308&di=eb7b13a34bb4ac70889c22f539b8967b&imgtype=0&src=http%3A%2F%2Fask-fd.zol-img.com.cn%2Fg5%2FM00%2F06%2F01%2FChMkJ1oRWjOIfETPAALLARyKz9AAAiTHAPd9dsAAssZ401.jpg"/></div>
+<div align="center"><img src="https://img.shields.io/badge/WeChat-yamolv-green.svg"/></div>
 
 > 一份来自2yLoo的开发&学习记录，取名来于**断剑重铸之日，骑士归来之时**
-
-<div align="center"><img src="https://img.shields.io/badge/WeChat-yamolv-green.svg"/></div>
 
 ### **Java基础** ![](http://progressed.io/bar/35)
 - [x] 基础包装类(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
