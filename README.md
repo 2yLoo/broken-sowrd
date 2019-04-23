@@ -26,7 +26,7 @@
 - [ ] ELKB日志收集
 - [ ] 容器化 - Docker
 
-### **错题集** ![](http://progressed.io/bar/0)
+### **错题集** ![](http://progressed.io/bar/100)
 
 - [ ] 收录部分开发过程中碰到的麻烦
 
