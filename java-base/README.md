@@ -1,3 +1,6 @@
+<div align="center"><img src="https://ossweb-img.qq.com/images/lol/web201310/skin/big92000.jpg"/></div>
+<div align="center"><img src="https://img.shields.io/badge/WeChat-yamolv-green.svg"/>&ensp;<img src="https://img.shields.io/badge/java-base-yellow.svg"/></div>
+
 ## 简介
 该目录下包含了部分我在阅读Java源码时的收获，包括经典的List/Set/Map，也有8大基础类型的包装类，甚至能拿出来吹一吹的双轴快速排序的等等内容。
 
