@@ -5,10 +5,10 @@
 > 一份来自2yLoo的开发&学习记录，取名来于**断剑重铸之日，骑士归来之时**
 
 ### **Java基础** ![](http://progressed.io/bar/35)
-- [x] 基础包装类(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
-- [x] List(ArrayList, LinkedList)
+- [x] [基础包装类](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/lang/wraps.md)(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
+- [x] [List](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/List.md)(ArrayList, LinkedList)
 - [ ] Map(HashMap, LinkedHashMap, TreeMap)
-- [ ] Set(HashSet, LinkedHashSet, TreeSet)
+- [ ] [Set](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/Set.md)(HashSet, LinkedHashSet, TreeSet)
 - [ ] Queue(PriorityQueue)
 
 ### **数据存储** ![](http://progressed.io/bar/0)
