@@ -9,4 +9,4 @@ HashSet是我们最常用的一个Set实现类。**它通过封装HashMap实现�
 而它对Set接口的实现，即在内部转为对HashMap中key的方法操作。
 
 ### LinkedHashSet
-LinkedHashSet对HashSet的特性做了补充，其内部的实现也由HashMap切换成了对应的LinkedHashMap。
+LinkedHashSet对HashSet的特性做了补充，与HashSet相似，LinkedHashMap的底层实现依赖于LinkedHashMap。但我们可以指定LinkedHashMap的顺序（插入有序or访问有序），而LinkedHashSet只能做到插入有序。
