@@ -6,7 +6,7 @@
 **接口是实现松耦合的关键**。我们可以“针对接口编程”实现其解耦，这样做的好处是不仅能使代码更清晰，还可很优雅的对数据源进行替换。
 
 ### Spring对数据访问提供的支持
-Spring帮我们解决了数据访问的第一大忙，即是对数据库访问异常的动刀。使用原始的JDBC操作数据库时，需要我们捕获许多信息量并不大的异常，以及一些捕获后无法当即解决的异常。Spring JDBC捕获了来自JDBC的异常，然后重新抛出更有信息量的非检查型异常。这不仅解决了前时代不用Spring手撕数据库时异常渗透的痛点，还可以缩小我们在排查时的问题范围。书中提到：**“如果无法从SQLException中恢复，那为什么我们还要强制捕获它呢？”**我认为这句话也蕴含了Java Exception机制的哲学。
+Spring帮我们解决了数据访问的第一大忙，即是对数据库访问异常的动刀。使用原始的JDBC操作数据库时，需要我们捕获许多信息量并不大的异常，以及一些捕获后无法当即解决的异常。Spring JDBC捕获了来自JDBC的异常，然后重新抛出更有信息量的非检查型异常。这不仅解决了前时代不用Spring手撕数据库时异常渗透的痛点，还可以缩小我们在排查时的问题范围。书中提到：**如果无法从SQLException中恢复，那为什么我们还要强制捕获它呢？** 我认为这句话也蕴含了Java Exception机制的哲学。
 
 JDBC是一种偏底层的访问方式，它建立在SQL之上，虽然它让我们与数据库之间薄如蝉翼，但以此为代价我们需要编写代码获取连接、释放链接以及捕获异常等，从而锐减我们的开发效率。Spring JDBC将其封装，将样板代码囊入其中，站在巨人的肩膀上，我们使用JdbcTemplate模板类可以友好便捷的操作数据库。在开发过程中，当我避免不了考虑一些本不该我关注的事情，我总会寻找机会借助框架的力量。
 
@@ -97,7 +97,53 @@ MongoDB作为文档型NoSQL的经典实现，自然逃不过Spring的“魔爪�
 - 使用MongoTemplate实现基于模板的数据库访问
 - 自动化的运行时Repository生成功能
 
-当应用中的表越来越多，在使用Spring Data JPA时，我们需要维护繁琐的数据对象模型。但在Spring Data MongoDB中，Java对象与文档之间的映射不需要我们额外维护。例如，在MongoDB中不存在User这个Document时，我们直接在应用中使用MongoTemplate的insert方法即可向MongoDB中插入一条User数据。不仅如此，Spring Data MongoDB也提供了一些能带给我们惊喜的注解。
+在使用MongoDB之前，我们至少需要配置主机地址、数据库信息。
+
+下面是一个最基本的MongoDB配置类：
+```
+@Configuration
+@EnableMongoRepositories(basePackages = "com.yy.demo.repository")
+public class MongoConfig {
+
+  @Bean
+  public MongoFactoryBean mongo() {
+      MongoFactoryBean mongo = new MongoFactoryBean();
+      mongo.setHost("localhost");
+      return mongo;
+  }
+
+  @Bean
+  public MongoOperations mongoTemplate(Mongo mongo) {
+      return new MongoTemplate(mongo, "DemoDB");
+  }
+
+}
+```
+
+也可通过继承AbstractMongoConfiguration的方式配置：
+```
+@Configuration
+@EnableMongoRepositories(basePackages = "com.yy.demo.repository)
+public class MongoConfig extends AbstractMongoConfiguration {
+
+    @Override
+    protected String getDatabaseName() {
+        return "DemoDB";
+
+    }
+
+    @Override
+    public Mongo mongo() throws Exception {
+      MongoClientURI uri = new MongoClientURI("mongodb://localhost:27017/DemoDB");
+      return new MongoClient(uri);
+    }
+
+}
+```
+
+其中MongoDB的URI也可携带额外的配置，具体可查看[MongoURI文档](http://api.mongodb.com/java/2.12/com/mongodb/MongoURI.html)。
+
+当应用中的表越来越多，在使用Spring Data JPA时，我们需要维护繁琐的数据对象模型。但在Spring Data MongoDB中，由于MongoDB的存储格式为BSON（一种类JSON的存储格式），Java对象与Mongo文档之间的映射不需要花费我们大量的精力。例如，在MongoDB中不存在User这个Document时，我们直接在应用中使用MongoTemplate的insert方法即可向MongoDB中插入一条User数据。不仅如此，Spring Data MongoDB也提供了一些能带给我们惊喜的注解。
 
 | 注解      | 描述                                             |
 | --------- | ------------------------------------------------ |
@@ -146,11 +192,112 @@ public interface UserRepository extends MongoRepository<User, String> {
   List<MomentBreed> findUserNamesBySex(String sex);
 }
 ```
-例子中@Query中对应更改为Mongo的查询语句，**但参数索引由0开始，而JPA中由1开始，并且无法通过@Query进行更新操作。**更新操作只能由扩展接口的方式实现。（博文中Spring Data MongoDB版本为2.1.6.RELEASE，我认为无法通过方法名以及注解来实现更新操作是该框架的一大痛点，期待后期版本实现此功能）
+例子中@Query中对应更改为Mongo的查询语句，**但参数索引由0开始，而JPA中由1开始，并且无法通过@Query进行更新操作。** 更新操作只能由扩展接口的方式实现。（博文中Spring Data MongoDB版本为2.1.6.RELEASE，我认为无法通过方法名以及注解来实现更新操作是该框架的一大痛点，期待后期版本实现此功能）
 
 #### Spring Data Neo4j
 Neo4j是一种图形数据库，以图形结构的形式存储数据。
 
+如果将Neo4j作为应用的一部分，而不是独立服务，可做如下配置：
+```
+@Configuration
+@EnableNeo4jRepositories(basePackages = "com.yy.demo.repository")
+public class Neo4jConfig extends Neo4jDataAutoConfiguration {
+
+    public Neo4jConfig() {
+        setBasePackage("model");
+    }
+
+    public GraphDatabaseService graphDatabaseService() {
+        return new GraghDatabaseFactory().newEmbeddedDatabase("/tmp/graphdb");
+    }
+
+}
+```
+
+Spring Data Neo4j提供的注解很全面：
+
+| 注解                | 描述                                                                           |
+| ------------------- | ------------------------------------------------------------------------------ |
+| @NodeEntity         | 将Java类型声明为节点实体                                                       |
+| @RelationshipEntity | 将Java类型声明为关联实体                                                       |
+| @StartNode          | 将属性声明为关联关系实体的开始节点                                             |
+| @EndNode            | 将属性声明为关联关系实体的结束节点                                             |
+| @Fetch              | 将实体的属性声明为立即加载                                                     |
+| @GraphId            | 将属性设置为实体的ID域，该属性为Long                                           |
+| @GraphProperty      | 明确声明某个属性                                                               |
+| @GraphTraversal     | 声明某个属性会自动添加一个iterable元素，这个元素是图遍历所构建的               |
+| @Indexed            | 声明某个属性应被索引                                                           |
+| @Labels             | 为@NodeEntity声明标签                                                          |
+| @Query              | 声明某个属性会自动添加一个iterable元素，这个元素是执行给定d Cypher查询所构建的 |
+| @QueryResult        | 声明某个Java或接口能够持有查询结果                                             |
+| @RelatedTo          | 通过某个属性，声明当前的@NodeEntity与另一个@NodeEntity直线的关联关系           |
+| @RelatedToVia       | 在@NodeEntity上声明某个属性，指定其引用该节点所属的某一个@RelationshipEntity   |
+| @RelationshipType   | 将某个域声明为关联实体类型                                                     |
+| @ResultColumn       | 在带有@QueryResult注解的类型上，将某个属性声明为获取查询结果集中的某个特定列   |
+
+Spring中Neo4j的使用与Mongo相似，支持简单粗暴的Repository，也支持@Query注解以及模板类Neo4jOperations的访问形式。
+
 #### Spring Data Redis
-Redis是一种Key-Value键值对类型的NoSQL，它的基础数据结构很简单，包括常用的String、List、Hash、Set、ZSet以及扩展了String的BitMap与HyperLogLog。相对于MongoDB、Neo4j等数据库结构，其键值对结构更加简单，因此不存在通过方法名访问数据库的形式。Spring提供了两个模板类来访问Redis：RedisTemplate与StringRedisTemplat。
+Redis是一种Key-Value键值对类型的NoSQL，它的基础数据结构很简单，包括常用的String、List、Hash、Set、ZSet以及扩展了String的BitMap与HyperLogLog。相对于MongoDB、Neo4j等数据库结构，其键值对结构更加简单，因此也不依赖通过Repository访问数据库。
+
+Spring Data Redis为4种Redis客户端实现了连接工厂，这4种客户端分别为：
+- JedisConnectionFactory（Redis官方比较推荐的一种客户端，参考[Redis官网](https://redis.io/clients)）
+- JredisConnectionFactory
+- LettuceConnectionFactory
+- SrpConnectionFactory
+
+以配置Jedis客户端为例，配置简洁易懂：
+```
+@Bean
+public RedisConnectionFactory redisCF() {
+    JedisConnectionFactory cf = new JedisConnectionFactory();
+    cf.setHostName("localhost");
+    cf.setPort(6379);
+    cf.setPassword("password");
+    return cf;
+}
+```
+
+Spring提供了两个模板类来访问Redis：RedisTemplate与StringRedisTemplate。
+
+通过前面的Redis连接工厂即可提供这两个模板类需要的连接：
+```
+// RedisTemplate
+@Bean
+public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisCF) {
+    RedisTemplate<String, Object> redis = new RedisTemplate<>();
+    redis.setConnectionFactory(redisCF);
+    return redis;
+}
+
+// StringRedisTemplate
+@Bean
+public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisCF) {
+    return new StringRedisTemplate(redisCF);
+}
+```
+这两个模板类的区别在于我们操作的是String还是具体对象，另外一个区别则在于序列化。
+
+Spring Data Redis支持多种序列化器：
+- GenericToStringSerializer：使用Spring转换服务进行序列化
+- JacksonJsonRedisSerializer：使用Jackson1将对象序列化为JSON
+- Jackson2JsonRedisSerializer：使用Jackson2将对象序列化为JSON
+- JdkSerializeationRedisSerializer：使用Java序列化
+- OxmSerializer：使用 Spring O/X实现序列化，用于XML序列化
+- StringRedisSerializer：序列化String类型的key和value
+
+RedisTemplate默认使用JdkSerializationRedisSerializer，StringRedisTemplate默认使用StringRedisSerializer。在模板类的配置中，我们可以指定key与value的序列化方式。如果我们希望key是String类型，而value序列化为JSON，可进行如下配置：
+```
+@Bean
+public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisCF) {
+    RedisTemplate<String, Object> redis = new RedisTemplate<>();
+    redis.setConnectionFactory(redisCF);
+    redis.setKeySerializer(new StringRedisSerializer());
+    redis.setValueSerializer(new Jackson2JsonRedisSerializer<>(Demo.class));
+    return redis;
+}
+```
+
+从各类NoSQL的集成可以看出，Spring Data可以让我们在应用中极大的减少数据源切换带来的代码变动。
+
 ### Spring Security
