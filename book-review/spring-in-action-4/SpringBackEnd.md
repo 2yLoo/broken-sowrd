@@ -300,4 +300,188 @@ public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisC
 
 从各类NoSQL的集成可以看出，Spring Data可以让我们在应用中极大的减少数据源切换带来的代码变动。
 
+### 缓存数据
+缓存可以存储经常会用到的信息，这样每次需要的时候，这些信息都是立即可用的，从而提高数据获取速度，并减少数据库压力。
+
+Spring不提供缓存的实现，仅提供对缓存的声明式支持。如果不利用切面实现缓存，我们的代码逻辑很可能是这样的：
+```
+public String find(String key) {
+    // 从缓存获取数据
+    String value = findInCache(key);
+    if (value == null || value.isEmpty()) {
+        value = findInDb(key);
+        if (value != null && !value.isEmpty()) {
+            addToCache(key, value);
+        }
+    }
+    return value;
+}
+```
+而通过Spring的缓存注解，同样实现上述代码的功能，我们可以这样编写：
+```
+@Cacheable(key = "#key", unless = "#result == null")
+public String find(String key) {
+    return findInDb(key);
+}
+```
+它具体是如何办到的呢？
+
+#### 步骤1. 配置缓存管理器
+在上面的例子中我们没有指定缓存的具体实现，显然我们需要先配置指定好我们用的缓存方案。
+
+Spring3.1内置了5个缓存管理器的实现：
+- SimpleCacheManager：简易缓存管理器，元素Get不到时不会新建
+- NoOpCacheManager：不做任何缓存存储，无法取读任何内容
+- ConcurrentMapCacheManager：基于ConcurrentHashMap实现的缓存，元素Get不到时不会新建
+- CompositeCacheManager：通过List维护多份缓存管理器的缓存管理器
+- EhCacheCacheManager：基于EhCache技术的缓存管理器
+
+Spring3.2提供了两个基于第三方的缓存管理器
+- RedisCacheManager：来自于Spring Data Redis项目
+- GemfireCacheManager：来自于Spring Data GemFire项目
+
+以EhCache为例（EhCache官网提到，EhCache是基于Java实现的使用最广泛的缓存，[EhCache官网](http://www.ehcache.org/)）
+
+使用Java配置设置EhCacheCacheManager：
+```
+@Configuration
+@EnbaleCaching
+public class CachingConfig {
+
+  @Bean
+  public EhCacheCacheManager cacheManager(CacheManager cm) {
+      return new EhCacheCacheManager(cm);
+  }
+
+  @Bean
+  public EhCacheManagerFactoryBean ehcache() {
+      EhCacheManagerFactoryBean ehCacheFactoryBean =
+              new EhCacheManagerFactoryBean();
+      ehCacheFactoryBean.setConfigLocation(
+              new ClassPathResource("com/yy/demo/cache/ehchache.xml"));
+      return ehCacheFactoryBean;
+  }
+}
+```
+其中ehcache()方法将创建一个EnCacheManagerFactoryBean的实例，而此工厂bean会生产一个CacheManager的实例，并注入到EhCacheCacheManager中。
+
+而在指定的EnCacheXML中我们可以配置缓存名以及其内存大小与存活时间：
+```
+<ehcache>
+  <cache name="demoCache"
+         maxBytesLocalHeap="50m"
+         timeToLiveSeconds="100">
+  </cache>
+</ehcache>
+```
+
+使用Redis缓存的配置：
+```
+@Configuration
+@EnableCaching
+public class CachingConfig {
+
+    @Bean
+    public CacheManager cacheManager(RedisTemplate redisTemplate) {
+        return new RedisCacheManager(redisTemplate);
+    }
+
+    @Bean
+    public JedisConnectionFactory redisConnectionFactory() {
+        JedisConnectionFactory jedisConnectionFactory =
+                new JedisConnectionFactory();
+        jedisConnectionFactory.afterPropertiesSet();
+        return jedisConnectionFactory;
+    }
+
+    @Bean
+    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory redisCF) {
+        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisCF);
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
+    }
+}
+```
+
+使用多个缓存管理器
+```
+@Bean
+public CacheManager cacheManager(
+        net.sf.ehcache.CacheManager cm,
+        javax.cache.CacheManager jcm) {
+
+    CompositeCacheManager cacheManager = new CompositeCacheManager();
+    List<CacheManager> managers = new ArrayList<>();
+    managers.add(new JCacheCacheManager(jcm));
+    managers.add(new EhCacheCacheManager(cm));
+    managers.add(new RedisCacheManager(redisTemplate()));
+    cacheManager.setCacheManagers(managers);
+    return cacheManager;
+
+}
+```
+
+#### 步骤2. 使用缓存注解
+Spring提供了4个缓存注解：
+
+| 注解        | 描述                                                                   |
+| ----------- | ---------------------------------------------------------------------- |
+| @Cacheable  | 在方法调用前优先从缓存中查找，缓存未查到则执行方法并将返回结果存入缓存 |
+| @CachePut   | 将方法返回值放入缓存                                                   |
+| @CacheEvict | 清除一个或多个缓存条目                                                 |
+| @Caching    | 这是一个分组的注解，能同时应用多个其他缓存注解                         |
+
+**其中@Cacheable与@CachePut都可向缓存写值，只能用在非void返回值的方法上**，它们有一些共有属性：
+
+| 属性      | 类型     | 描述                                   |
+| --------- | -------- | -------------------------------------- |
+| value     | String[] | 要使用的缓存名                         |
+| condition | String   | SpEL表达式，值为false时不会应用该缓存  |
+| key       | String   | SpEL表达式，表示缓存的key              |
+| unless    | String   | SpEL表达式，值为true时不会存到缓存之中 |
+
+unless和condition的效果看上去相同，其实unless属性智能阻止将对象放入缓存，不阻止其读取动作，而conditon会同时阻止读取与写入的动作，也就是禁用该缓存。
+
+@CacheEvict可用于void返回值的方法上，用于清除缓存，它的属性如下：
+
+| 属性             | 类型     | 描述                                  |
+| ---------------- | -------- | ------------------------------------- |
+| value            | String[] | 要使用的缓存名                        |
+| key              | String   | SpEL表达式，表示缓存的key             |
+| condition        | String   | SpEL表达式，值为false时不会应用该缓存 |
+| allEntries       | boolean  | 值为true时移除指定缓存的所有条目      |
+| beforeInvocation | boolean  | 值为true时在方法调用前移除            |
+
+用一个维护💎 心悦会员3会员信息的服务为栗子🌰 ：
+```
+@Service
+@CacheConfig(cacheNames = {"superVIP"})
+public class SuperVIPServiceImpl implements SuperVIPService {
+
+  private SuperVIPRepository superVIPRepository;
+
+  @Autowired
+  public SuperVIPServiceImpl(SuperVIPRepository superVIPRepository) {
+      this.superVIPRepository = superVIPRepository;
+  }
+
+  @Cacheable(key = "'email:' + #email")
+  public SuperVIP findByEmail(String email) {
+      return VIPRepository.findByEmail(email);
+  }
+
+  @CachePut(key = "'email:' + #result.email")
+  public SuperVIP add(SuperVIP superVIP) {
+      return VIPRepository.add(superVIP);
+  }
+
+  @CacheEvict(key = "'email:' + #email")
+  public void remove(String email) {
+      superVIPRepository.removeByEmail(email);
+  }
+}
+```
+注解缓存通过切面的形式与业务逻辑密切配合，同步完成了会员信息的读取、写入、删除功能。
+
 ### Spring Security
