@@ -1,5 +1,5 @@
 ## Spring Web开发
-该章涵盖了Spring MVC相关知识，在看书之前，Spring MVC其实是我的一个盲点。Spring Boot的Web Starter把它“藏”起来了，开发过程中不刻意的话我无法触摸到真实存在的MVC，通过这一章，在没有Spring Boot的“阻挠”下，MVC像是我发现的新大陆。
+该章涵盖了Spring MVC与Spring Security的相关知识，在看书之前，Spring MVC其实是我的一个盲点。Spring Boot的Web Starter把它“藏”起来了，开发过程中不刻意的话我无法触摸到真实存在的MVC，通过这一章，在没有Spring Boot的“阻挠”下，MVC像是我发现的新大陆。
 
 MVC是3个单词首字母的大写：
 - M:Model，前后端交互产生的信息
@@ -249,3 +249,141 @@ public class User {
 在这个简单的例子，我们的add()方法只接收Post请求，请求路径为localhost:8080/add，返回"Success"状态而不是一个JSP路径地址。不仅如此，我们要求id为null、name不为null、email字段为Email格式、年龄的整数部分小于100，小数部分小于9、只接受非单身的用户，并且生日为过去的时间···如果不这么做，请求将返回400 Bad Request错误。如果我们需要自定义的ResponseCode来通知请求者，也许它会显得乏力，但它在我眼里还是一个很强大的注解。
 
 合理使用这些注解可以使我们的开发事半功倍。其中最吸引我的@Valid还有更多用法，这些校验注解都放在```javax.validation.constraints```包下，感兴趣的可以继续探索~
+
+### Spring Security
+> Spring Security是为基于Spring的应用程序提供声明式安全保护的安全性框架。 ——《Spring 实战》
+>
+> Spring Security是一个强大且高自定义的**权限与访问控制**框架。 ——[官方文档](https://spring.io/projects/spring-security)
+
+#### Spring Security配置
+
+它对业务的入侵很低，并且入门简单明了，是后台做权限控制时很值得考虑的一个框架。使用它的重点即在于配置类，最简单的配置类如下：
+```
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {}
+```
+通过@EnableWebSecurity来激活Spring Security，再通过继承WebSecurityConfigurerAdapter来获取基本的过滤功能，而此时该应用将拒绝所有的请求。我们可以通过重载以下三个方法来配置Web安全性，这三个方法可以帮助我们做更小细粒度的权限与访问控制：
+
+| 方法                                    | 描述                          |
+| --------------------------------------- | ----------------------------- |
+| configure(WebSecurity)                  | 配置Spring Security的Filter链 |
+| configure(HttpSecurity)                 | 配置如何通过拦截器保护请求    |
+| configure(AuthenticationManagerBuilder) | 配置user-detail服务           |
+
+应用安全性有一个很强大的需求点，即根据用户来区分访问权限。所以在使用Spring Security时我们还需要配置用户存储、指定各个请求的可访问性。Spring Security内置了许多的用户存储场景，包括内存、关系型数据库、LDAP，我们还可编写插入自定义的用户存储实现。
+
+- 内存用户存储：
+```
+@Override
+public void configure(AuthenticationManagerBuilder auth) throws Exception{
+    auth
+        .inMemoryAuthentication()
+        .withUser("user").password("password").roles("USER").and()
+        .withUser("admin").password("admin").roles("USER", "ADMIN");
+}
+```
+使用auth的```inMemoryAuthentication()```方法即可启用内存用户存储。这种方式在开发调试时还是很奏效的，可是在生产环境上可能我们需要更珍惜内存一点。
+
+- 关系型数据库用户存储：
+```
+@Override
+public void configure(AuthenticationManagerBuilder auth) throws Exception{
+    auth
+            .jdbcAuthentication()
+            .dataSource(dataSource)
+            .usersByUsernameQuery(
+                    "select username, password, true" +
+                    "from AdminUser where username=?")
+            .authoritiesByUsernameQuery(
+                    "select username, 'ROLE_USER' from AdminUser where username=?");
+}
+```
+对应使用```jdbcAuthentication()```即可启用关系型数据库用户存储。如果数据库与应用部署在不同的服务器上，也就可以节省应用服务器内存开销。并且关系型数据库还是很贴合做权限控制用户存储的。但这并不是我们唯一的选择，我们也可基于LDAP进行认证，其实现方式与上例大同小异，不在此进行示范，但值得一提的是其自定义认证方式。
+
+- MongoDB用户存储：
+```
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) throws Exception{
+        auth.userDetailsService(new UserServiceImpl(adminRepository));
+    }
+}
+```
+自定义认证方式不仅支持NoSQL，Spring Security把这个更大的舞台交给了我们，而交接棒即其框架内部的 **UserDetailsService** 接口。我们在配置类中只需向 **userDetailsService()** 方法传入一个 **UserDetailsService** 的实现类即可：
+```
+@Service
+public class UserServiceImpl implements UserDetailsService {
+
+    private AdminRepository adminRepository;
+
+    @Autowired
+    public UserServiceImpl(AdminRepository adminRepository) {
+        this.adminRepository = adminRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Admin admin = adminRepository.findByUsername(username);
+        if (admin != null) {
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority("ROLE_DEMO"));
+            return new User(admin.getUsername(), admin.getPassword(), authorities);
+        }
+        throw new UsernameNotFoundException("User:" + username + "not found.");
+    }
+}
+```
+代码中的Admin为我们自己项目创建的Model，如果Admin实现了UserDetails接口，则可将Admin对象直接返回。
+
+#### 拦截请求
+通过重载configure(HttpSecurity)方法，可以对请求进行有目的的拦截，下面是HttpSecurity提供的方法：
+
+| 安全表达式             | 计算结果                                              |
+| ---------------------- | ----------------------------------------------------- |
+| authentication         | 用户的认证对象                                        |
+| denyAll                | 结果始终为false                                       |
+| hasAnyRole(roles)      | 如果用户拥有列表中的任意角色，结果为true              |
+| hasRole(roles)         | 如果用户拥有指定角色，结果为true                      |
+| hasIpAddress()         | 如果请求来之指定IP，结果为true                        |
+| isAnonymous()          | 如果当前用户为匿名用户，结果为true                    |
+| isAuthenticated()      | 如果当前用户进行了认证，结果为true                    |
+| isFullyAuthenticated() | 如果当前用户进行了完整认证而非Remember-me，结果为true |
+| isRememberMe()         | 如果当前用户通过Remember-me自动认证，结果为true       |
+| permitAll              | 结果时钟为true                                        |
+| principal              | 用户的principal对象                                   |
+
+如果想对/auth/下的所有请求做拦截，而允许其通过他访问地址，可以简单配置如下：
+```
+@Override
+public void configure(HttpSecurity http) throws Exception{
+    http
+            .authorizeRequests()
+            .antMatchers("/auth/*").authenticated()
+            .anyRequest().permitAll();
+}
+```
+
+这些方法的范围有大小之分，而且Spring Security在过滤时会依次匹配，所以在配置时更具体的过滤规则应优先。
+
+如果某个请求我们仅希望通过HTTPS（HTTP + SSL，提升了HTTP请求的安全性）的方式访问，则需要这样配置：
+```
+@Override
+public void configure(HttpSecurity http) throws Exception{
+    http
+            .authorizeRequests()
+            .antMatchers("/auth/*").authenticated()
+            .anyRequest().permitAll();
+            .requiresChannel()
+            .antMathcers("/message/send").requiresSecure();
+}
+```
+在此配置中"/message/send"的请求只有使用HTTPS时才可访问。
+
+运用好Spring Web与Spring Security可以使我们的项目十分健壮、简洁，上面MongoDB的例子中我预支了下一章的Spring Data知识，第三章专注于持久化相关的实战经验，并展示了另一种保护应用的方式。
