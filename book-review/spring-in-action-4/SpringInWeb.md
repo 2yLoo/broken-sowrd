@@ -345,6 +345,50 @@ public class UserServiceImpl implements UserDetailsService {
 #### 拦截请求
 通过重载configure(HttpSecurity)方法，可以对请求进行有目的的拦截，下面是HttpSecurity提供的方法：
 
+| 方法                       | 功能                                        |
+| -------------------------- | ------------------------------------------- |
+| access(String)             | 计算传入的SpEL语法，结果为true时允许访问    |
+| anonymous()                | 允许匿名用户访问                            |
+| authenticated()            | 允许认证过的用户访问                        |
+| denyAll()                  | 拒绝所有访问                                |
+| fullyAuthenticated()       | 如果用户是完整认证的话，就允许访问          |
+| hasAnyAuthority(String...) | 如果用户具备给定权限中的某一个，就允许访问  |
+| hasAnyRole(String...)      | 如果用户具备给定角色中的某一个，就允许访问  |
+| hasAuthority(String)       | 如果用户具备给定权限，就允许访问            |
+| hasRole(String)            | 如果用户具备给定角色，就允许访问            |
+| hasIpAddress(String)       | 如果请求来自给定IP，就允许访问              |
+| not()                      | 对其他访问方法的结果求返                    |
+| permitAll()                | 允许所有访问                                |
+| rememberMe()               | 如果用户通过Remember-me功能认证，就允许访问 |
+
+如果想对/auth/下的所有请求做拦截，而允许其通过他访问地址，可以简单配置如下：
+```
+@Override
+public void configure(HttpSecurity http) throws Exception{
+    http
+            .authorizeRequests()
+            .antMatchers("/auth/**").authenticated()
+            .anyRequest().permitAll();
+}
+```
+
+这些方法的范围有大小之分，Spring Security在过滤时会依次匹配，所以更具体的过滤规则应优先配置。
+
+其中权限与角色的功能相似，使用时区别如下：
+```
+@Override
+public void configure(HttpSecurity http) throws Exception{
+    http
+            .authorizeRequests()
+            .antMatchers("/auth/login").hasRole("USER")
+            // .antMatchers("/auth/login").hasAthority("ROLE_USER")
+            .anyRequest().permitAll();
+}
+```
+在源码中，调用hasRole时会自动使用"ROLE_"前缀，并组合成SpEL语法通过access()来进行验证。
+
+Spring Security还支持其他的SpEL表达式，它们的语法与计算结果如下：
+
 | 安全表达式             | 计算结果                                              |
 | ---------------------- | ----------------------------------------------------- |
 | authentication         | 用户的认证对象                                        |
@@ -358,19 +402,6 @@ public class UserServiceImpl implements UserDetailsService {
 | isRememberMe()         | 如果当前用户通过Remember-me自动认证，结果为true       |
 | permitAll              | 结果时钟为true                                        |
 | principal              | 用户的principal对象                                   |
-
-如果想对/auth/下的所有请求做拦截，而允许其通过他访问地址，可以简单配置如下：
-```
-@Override
-public void configure(HttpSecurity http) throws Exception{
-    http
-            .authorizeRequests()
-            .antMatchers("/auth/*").authenticated()
-            .anyRequest().permitAll();
-}
-```
-
-这些方法的范围有大小之分，而且Spring Security在过滤时会依次匹配，所以在配置时更具体的过滤规则应优先。
 
 如果某个请求我们仅希望通过HTTPS（HTTP + SSL，提升了HTTP请求的安全性）的方式访问，则需要这样配置：
 ```
@@ -386,4 +417,4 @@ public void configure(HttpSecurity http) throws Exception{
 ```
 在此配置中"/message/send"的请求只有使用HTTPS时才可访问。
 
-运用好Spring Web与Spring Security可以使我们的项目十分健壮、简洁，上面MongoDB的例子中我预支了下一章的Spring Data知识，第三章专注于持久化相关的实战经验，并展示了另一种保护应用的方式。
+运用好Spring Web与Spring Security可以使我们的项目十分健壮、简洁。Spring Security不仅可用于请求层面的保护，也可用于方法上的保护。此节暂介绍到第一层面，在上面自定义用户存储的例子中，我预支了下一章 **Spring 后端** 的Spring Data知识。第三章专注于持久化相关的实战经验，并展示了另一种保护应用的方式。
