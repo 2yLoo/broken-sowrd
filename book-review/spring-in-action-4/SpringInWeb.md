@@ -417,4 +417,26 @@ public void configure(HttpSecurity http) throws Exception{
 ```
 在此配置中"/message/send"的请求只有使用HTTPS时才可访问。
 
+在配置好用户存储后，我们可以通过Postman的Authorization将验证信息发送到后台。
+
+在一切就绪后，如何通过Postman发送带有验证信息的数据呢？
+```
+@Override
+public void configure(AuthenticationManagerBuilder auth) throws Exception{
+    auth
+        .userDetailsService(new UserServiceImpl(adminRepository)).passwordEncoder(new PasswordEncoder() {
+        @Override
+        public String encode(CharSequence charSequence) {
+            return MD5Encoder.encode(charSequence.toString().getBytes());
+        }
+
+        @Override
+        public boolean matches(CharSequence charSequence, String s) {
+            return s.equals(this.encode(charSequence));
+        }
+    });
+}
+```
+在Postman中找到Authorization并输入用户与密码信息，发送请求后后台即可捕获到认证信息，并与用户存储做匹配。在上面的配置中可自定义实现密码加密，此加密后的结果应与持久化密码相同（准确来说是与服务类返回的密码结果相同），否则会匹配出错。如果持久化密码是明文存储，加密算法可直接返回原字段，但这仅适合调试使用，不建议密码明文入库！
+
 运用好Spring Web与Spring Security可以使我们的项目十分健壮、简洁。Spring Security不仅可用于请求层面的保护，也可用于方法上的保护。此节暂介绍到第一层面，在上面自定义用户存储的例子中，我预支了下一章 **Spring 后端** 的Spring Data知识。第三章专注于持久化相关的实战经验，并展示了另一种保护应用的方式。
