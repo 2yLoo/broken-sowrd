@@ -290,18 +290,18 @@ public void configure(AuthenticationManagerBuilder auth) throws Exception{
 @Override
 public void configure(AuthenticationManagerBuilder auth) throws Exception{
     auth
-            .jdbcAuthentication()
-            .dataSource(dataSource)
-            .usersByUsernameQuery(
-                    "select username, password, true" +
-                    "from AdminUser where username=?")
-            .authoritiesByUsernameQuery(
-                    "select username, 'ROLE_USER' from AdminUser where username=?");
+        .jdbcAuthentication()
+        .dataSource(dataSource)
+        .usersByUsernameQuery(
+                "select username, password, true" +
+                "from AdminUser where username=?")
+        .authoritiesByUsernameQuery(
+                "select username, 'ROLE_USER' from AdminUser where username=?");
 }
 ```
-对应使用```jdbcAuthentication()```即可启用关系型数据库用户存储。如果数据库与应用部署在不同的服务器上，也就可以节省应用服务器内存开销。并且关系型数据库还是很贴合做权限控制用户存储的。但这并不是我们唯一的选择，我们也可基于LDAP进行认证，其实现方式与上例大同小异，不在此进行示范，但值得一提的是其自定义认证方式。
+对应使用```jdbcAuthentication()```即可启用关系型数据库用户存储。如果数据库与应用部署在不同的服务器上，也就可以节省应用服务器内存开销。并且关系型数据库还是很贴合做权限控制用户存储的。但这并不是我们唯一的选择，我们也可基于LDAP进行认证，其实现方式与上例大同小异，不在此进行示范，但值得一提的是下面的自定义认证方式。
 
-- MongoDB用户存储：
+- 自定义用户存储：
 ```
 @Configuration
 @EnableWebSecurity
@@ -316,7 +316,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 }
 ```
-自定义认证方式不仅支持NoSQL，Spring Security把这个更大的舞台交给了我们，而交接棒即其框架内部的 **UserDetailsService** 接口。我们在配置类中只需向 **userDetailsService()** 方法传入一个 **UserDetailsService** 的实现类即可：
 ```
 @Service
 public class UserServiceImpl implements UserDetailsService {
@@ -340,7 +339,13 @@ public class UserServiceImpl implements UserDetailsService {
     }
 }
 ```
-代码中的Admin为我们自己项目创建的Model，如果Admin实现了UserDetails接口，则可将Admin对象直接返回。
+Spring Security把这个更大的舞台交给了我们，而交接棒即其框架内部的 **UserDetailsService** 接口。我们的工作就是以自己的方式实现该接口，并在配置类中将其传入 **userDetailsService()** 方法。其接口仅定义了一个方法：
+```
+public interface UserDetailsService {
+    UserDetails loadUserByUsername(String var1) throws UsernameNotFoundException;
+}
+```
+目的是根据username查询用户实体。在上述Demo中Admin是我们应用中的用户信息类，通过username查询到具体信息后需要将其转换为第三方库中User类的对象。User类实现了UserDetails接口，如果我们的Admin也实现了UserDetails接口，则可以将Admin对象直接返回。
 
 #### 拦截请求
 通过重载configure(HttpSecurity)方法，可以对请求进行有目的的拦截，下面是HttpSecurity提供的方法：
@@ -366,9 +371,9 @@ public class UserServiceImpl implements UserDetailsService {
 @Override
 public void configure(HttpSecurity http) throws Exception{
     http
-            .authorizeRequests()
-            .antMatchers("/auth/**").authenticated()
-            .anyRequest().permitAll();
+        .authorizeRequests()
+        .antMatchers("/auth/**").authenticated()
+        .anyRequest().permitAll();
 }
 ```
 
@@ -379,10 +384,10 @@ public void configure(HttpSecurity http) throws Exception{
 @Override
 public void configure(HttpSecurity http) throws Exception{
     http
-            .authorizeRequests()
-            .antMatchers("/auth/login").hasRole("USER")
-            // .antMatchers("/auth/login").hasAthority("ROLE_USER")
-            .anyRequest().permitAll();
+        .authorizeRequests()
+        .antMatchers("/auth/login").hasRole("USER")
+        // .antMatchers("/auth/login").hasAthority("ROLE_USER")
+        .anyRequest().permitAll();
 }
 ```
 在源码中，调用hasRole时会自动使用"ROLE_"前缀，并组合成SpEL语法通过access()来进行验证。
@@ -408,35 +413,64 @@ Spring Security还支持其他的SpEL表达式，它们的语法与计算结果�
 @Override
 public void configure(HttpSecurity http) throws Exception{
     http
-            .authorizeRequests()
-            .antMatchers("/auth/*").authenticated()
-            .anyRequest().permitAll();
-            .requiresChannel()
-            .antMathcers("/message/send").requiresSecure();
+        .authorizeRequests()
+        .antMatchers("/auth/**").authenticated()
+        .anyRequest().permitAll();
+        .requiresChannel()
+        .antMathcers("/message/send").requiresSecure();
 }
 ```
 在此配置中"/message/send"的请求只有使用HTTPS时才可访问。
 
-在配置好用户存储后，我们可以通过Postman的Authorization将验证信息发送到后台。
-
-在一切就绪后，如何通过Postman发送带有验证信息的数据呢？
+Spring Security 3.2开始默认开启CSRF（跨站请求伪造）防护。如需将其关闭可配置为：
 ```
+@Override
+public void configure(HttpSecurity http) throws Exception{
+    http
+        ···
+        .csrf().disable();
+}
+```
+
+当一切都配置完毕，如何验证我们的配置是否OK呢？
+
+我们可以通过Postman将验证信息发送到后台。最简单的办法就是在Authorization中选择类型为 **Basic Auth** ，再输入用户名与密码即可。
+
+为了方便校验，我配置了/auth/下的请求均需要"ROLE_USER"的权限，再在内存中配置了两个角色，分别为"ROLE_USER"与"ROLE_TEST"。
+
+但还有两点很重要：如果不在配置中开启httpBasic功能，则无法通过Postman的Basic Auth进行用户校验；开启后，还需要实现密码加密接口PasswordEncoder，其加密后的结果应与用户存储的密码相同，否则会匹配失败，如果没有实现PasswordEncoder，控制台会报错```There is no PasswordEncoder mapped for the id "null"```。
+
+```
+@Override
+public void configure(HttpSecurity http) throws Exception {
+    http
+            .authorizeRequests()
+            .antMatchers("/auth/**").hasAuthority("ROLE_USER")
+            .anyRequest().permitAll()
+            .and().httpBasic();
+}
+
 @Override
 public void configure(AuthenticationManagerBuilder auth) throws Exception{
     auth
-        .userDetailsService(new UserServiceImpl(adminRepository)).passwordEncoder(new PasswordEncoder() {
-        @Override
-        public String encode(CharSequence charSequence) {
-            return MD5Encoder.encode(charSequence.toString().getBytes());
-        }
+        .inMemoryAuthentication()
+        .passwordEncoder(new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence charSequence) {
+                return charSequence.toString();
+            }
 
-        @Override
-        public boolean matches(CharSequence charSequence, String s) {
-            return s.equals(this.encode(charSequence));
-        }
-    });
+            @Override
+            public boolean matches(CharSequence charSequence, String s) {
+                return s.equals(this.encode(charSequence));
+            }
+        })
+        .withUser("user").password("password").roles("USER")
+        .and()
+        .withUser("test").password("password").roles("TEST");
 }
 ```
-在Postman中找到Authorization并输入用户与密码信息，发送请求后后台即可捕获到认证信息，并与用户存储做匹配。在上面的配置中可自定义实现密码加密，此加密后的结果应与持久化密码相同（准确来说是与服务类返回的密码结果相同），否则会匹配出错。如果持久化密码是明文存储，加密算法可直接返回原字段，但这仅适合调试使用，不建议密码明文入库！
+
+完成配置后，当我们在Postman使用USER角色进行认证时可成功访问路径在/auth/下的接口，而角色为"TEST"的用户则无权限访问相关接口。
 
 运用好Spring Web与Spring Security可以使我们的项目十分健壮、简洁。Spring Security不仅可用于请求层面的保护，也可用于方法上的保护。此节暂介绍到第一层面，在上面自定义用户存储的例子中，我预支了下一章 **Spring 后端** 的Spring Data知识。第三章专注于持久化相关的实战经验，并展示了另一种保护应用的方式。
