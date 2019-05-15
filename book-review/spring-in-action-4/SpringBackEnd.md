@@ -484,4 +484,141 @@ public class SuperVIPServiceImpl implements SuperVIPService {
 ```
 注解缓存通过切面的形式与业务逻辑密切配合，同步完成了会员信息的读取、写入、删除功能。
 
-### Spring Security
+### 保护方法应用
+上一章最后提到的对方法级别的保护与过滤即下面要介绍的几种注解：
+- @Secured，来自Spring Security
+- @RolesAllowed，来自JSR-250
+- @PreAuthorize、@PostAuthorize、@PreFilter、@PostFilter
+
+与对请求的拦截与保护类似，第一步也需要通过配置类激活：
+```
+@Configuration
+@EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
+public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
+
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) throws Exception{
+        auth.inMemoryAuthentication().withUser("user").password("password").roles("USER");
+    }
+
+}
+```
+@EnableGlobalMethodSecurity 注解用于激活全局的方法保护。其中，securedEnabled用于激活@Secured注解；jsr250Enabled用于激活@RolesAllowed注解；prePostEnabled用于激活Pre\*/Post\*注解。继承GlobalMethodSecurityConfiguration后可根据需要来重载configure方法进行更精细的配置。
+
+配置完成后，在我们需要保护的方法上添加注解即可完成工作：
+```
+@Secured("ROLE_USER")
+public String someMethod(){
+    return "进入服务！";
+}
+```
+
+如果使用@RolesAllowed注解，需将对应的@Secured注解更改为：
+```
+@RolesAllowed("ROLE_USER")
+public String someMethod(){
+    return "进入服务！";
+}
+```
+
+@Secured与@RolesAllowed的保护都是从请求角色出发进行限制。而之前有提到切面知识中通知可分为前置与后置通知。第三种注解可以更细化通知动作发生时机，并可对传参与返回结果做额外的动作。它们来自Spring Secured3.0，并基于SpEL语法实现：
+
+| 注解           | 描述                                        |
+| -------------- | ------------------------------------------- |
+| @PreAuthorize  | 在方法调用前，基于表达式结果限制方法访问    |
+| @PostAuthorize | 允许方法调用，表达式为false时抛出安全性异常 |
+| @PreFilter     | 允许方法调用，根据表达式过滤传入参数        |
+| @PostFilter    | 允许方法调用，根据表达式过滤返回结果        |
+
+- @PreAuthorize 在SpEL中通过来根据"#"来获取入参来限制方法调用：
+```
+@PreAuthorize("hasRole('ROLE_USER') and #admin.level < 3")
+public Admin preAuthorizeMethod(Admin admin) {
+    System.out.println("进入服务");
+    return new Admin();
+}
+```
+此处@PreAuthorize仅允许操作者角色为"ROLE_USER"并且传入的Admin对象等级小于3时访问。
+
+- @PostAuthorize 在SpEL中通过returnObject可获取返回结果对象来限制方法访问：
+```
+@PostAuthorize("returnObject.level == 3")
+public void postAuthorizeMethod(Admin admin) {
+    System.out.println("进入服务");
+}
+```
+
+- @PreFilter 会根据过滤规则对传入参数进行过滤，可与@PreAuthorize 一样使用"#"来指定入参，还可使用 filterObject表示集合中的元素，当入参不止一个时，需要使用注解属性filterTarget来指定我们要过滤的集合：
+```
+@PreFilter(filterTarget = "list", value = "filterObject.level == 1")
+public List<Admin> preFilterMethod(List<Admin> list, String name) {
+    System.out.println(list);
+    return list;
+}
+```
+此处将过滤掉入参list中Admin等级不为1的集合元素。
+
+- @PostFilter 在SpEL中通过filterObject可获取返回结果对象并进行过滤，当方法返回类型为void时filterObject将失去意义：
+```
+@PostFilter("filterObject.level >= 2")
+public List<Admin> postFilterMethod(List<Admin> list) {
+    Admin admin = new Admin("user3","password",3);
+    list.add(admin);
+    return list;
+}
+```
+此时会将返回结果中Admin等级小于2的元素过滤掉。
+
+这4个注解可以叠加使用，以带来更丰富细致的权限控制效果。但虽然其扩展方便，如果表达式不断膨胀，也会显得笨拙、复杂。此时则可选择祭出 **许可计算器** 来帮助我们优化代码。
+
+在使用许可计算器之前，需要实现PermissionEvaluator接口，它包含了两个方法：
+```
+public class DemoPermissionEvaluator implements PermissionEvaluator {
+
+    private static final GrantedAuthority ADMIN_AUTHORITY = new GrantedAuthorityImpl("ROLE_ADMIN");
+
+
+    @Override
+    public boolean hasPermission(Authentication authentication, Object target, Object permission) {
+        if (target instanceof Admin){
+            Admin admin = (Admin) target;
+            if ("delete".equals(permission)) {
+                return admin.getLevel() <= 2;
+            }
+            if ("read".equals(permission)) {
+                return true;
+            }
+        }
+        return authentication.getAuthorities().contains(ADMIN_AUTHORITY);
+    }
+
+    @Override
+    public boolean hasPermission(Authentication authentication, Serializable targetId, String target, Object permission){
+        return false;
+    }
+}
+```
+其中authentication为每次计算时操作者所有的权限，target为具体的操作对象，permission则可在各个调用处进行配置传入。若能获取到目标对象的ID，则会进入第二个重载方法，并将ID值序列化传入。
+
+完成我们自定义的许可计算器编码后，还需要在之前提到的配置类中重写GlobalMethodSecurityConfiguration的createExpressionHandler()方法，否则即使配置了许可计算器也无法使用：
+```
+@Override
+protected MethodSecurityExpressionHandler createExpressionHandler() {
+    DefaultMethodSecurityExpressionHandler expressionHandler =
+            new DefaultMethodSecurityExpressionHandler();
+    expressionHandler.setPermissionEvaluator(new DemoPermissionEvaluator());
+    return expressionHandler;
+}
+```
+
+将这两步完成也就可以投入使用了：
+```
+@PreFilter("hasPermission(filterObject, 'delete')")
+public List<Admin> preFilterMethod(List<Admin> list) {
+    System.out.println(list);
+    return list;
+}
+```
+在此示例中，只有Admin等级小于等于2的用户才会被传入，示例展示的逻辑非常简单，但既然可以拿到调用者权限、传入参数等信息，我相信可以完成许多仅用注解不优雅实现、无法实现的实际场景。
+
+SpEL使我们在使用注解保护方法时如鱼得水，结合第二章提到的对请求的限制于保护，Spring Security给应用撑起了双层的保护伞，尽管我在Demo中没有进行非常切合场景的使用展示，但其能力是无法被遮盖的。下一章是《Spring 实战》的最后一章，介绍了丰富的后台拓展。而不让我们的视野局限在Web与持久化等技术点上。
