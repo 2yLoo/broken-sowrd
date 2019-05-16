@@ -14,6 +14,6 @@ Spring已经伴随Java开发多年，并在持续的发光发热。作为程序�
 
 下面我以该书目录为划分，对《Spring 实战》进行了一下自我总结。
 - [x] [Spring核心：DI与AOP](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/TheSpringCore.md)
-- [ ] [Spring Web应用](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringInWeb.md)
-- [ ] [Spring 后端](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringBackEnd.md)
+- [x] [Spring Web应用](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringInWeb.md)
+- [x] [Spring 后端](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringBackEnd.md)
 - [ ] [Spring 集成](https://github.com/2yLoo/broken-sowrd/blob/master/book-review/spring-in-action-4/SpringIntegration.md)

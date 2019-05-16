@@ -17,7 +17,7 @@
 - [ ] MongoDB
 - [ ] Redis
 
-### **撸后感** ![](http://progressed.io/bar/70)
+### **撸后感** ![](http://progressed.io/bar/85)
 - [ ] 《Spring 实战（第4版）》
 
 ### **消息队列** ![](http://progressed.io/bar/0)
