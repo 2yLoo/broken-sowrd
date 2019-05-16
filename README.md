@@ -8,7 +8,7 @@
 ### **Java基础** ![](http://progressed.io/bar/60)
 - [x] [基础包装类](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/lang/wraps.md)(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
 - [x] [List](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/List.md)(ArrayList, LinkedList)
-- [ ] Map(HashMap, LinkedHashMap, TreeMap)
+- [ ] [Map(HashMap, LinkedHashMap, TreeMap)](https://github.com/2yLoo/broken-sowrd/tree/master/java-base/util/Map)
 - [ ] [Set](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/Set.md)(HashSet, LinkedHashSet, TreeSet)
 - [ ] Queue(PriorityQueue)
 
@@ -18,7 +18,7 @@
 - [ ] Redis
 
 ### **撸后感** ![](http://progressed.io/bar/85)
-- [ ] 《Spring 实战（第4版）》
+- [ ] [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
 
 ### **消息队列** ![](http://progressed.io/bar/0)
 - [ ] RabbitMQ
