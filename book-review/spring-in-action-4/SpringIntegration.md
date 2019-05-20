@@ -414,7 +414,12 @@ public class DemoReceiver {
 AMQP中的消费者关注点仍然为队列，但消息到达队列前的步骤发生变化，我们通过配置类来配置各个Exchange，在这个节点上将预配置好每个Exchange处理的routing key与队列，而生产者的关注点则从队列转移到routing key上。
 
 ### 使用WebSocket和STOMP实现消息功能
-WebSocket协议提供了通过套接字实现 **全双工通信** 的功能，允许服务器与浏览器之间互相发送消息。
+WebSocket协议提供了通过套接字实现 **全双工通信** 的功能，允许服务器与浏览器之间互相发送消息。通过配置Handler自定义消息处理器，配置类添加@EnableWebSocket注解。
+
+WebSocket依赖浏览器与防火墙对其的支持。SockJS可在WebSocket不可用时提供备用方案。而WebSocket与SockJS都是偏原始的通信。Spring支持基于WebSocket使用STOMP消息协议。
+
+#### STOMP（Simple Text Oriented Messaging Protocal）
+类似于JMS或AMQP，通过中间件转发客户端与服务端之间的异步消息。可使用RabbitMQ、ActiveMQ等作为其消息代理中继。使用@SubscribeMapping异步实现请求-响应模式。
 
 ### Spring发送邮件
 Spring Email抽象的核心是MailSender接口。
@@ -487,5 +492,23 @@ public class EmailUtil {
 ```
 
 ### 管理Spring Bean
+Spring的DI（依赖注入）可以在应用中配置bean属性，但对于已经部署并正运行的应用，单独使用DI无法改变应用的配置，这时需要使用Java管理扩展（Java Management Extensions, JMX）。JMX的核心组件是托管bean（managed bean, MBean）。
+
+这个概念很少在开发过程中提及，可简单理解为我们可以基于某些JMX管理工具在应用运行时对配置的MBean进行展示和访问，以了解正运行的应用程序内部情况，甚至可以远程管理MBean。
+
+而将一个Spring Bean声明为MBean是非常简单的。通过@managedResource注解标注bean，并使用@ManagedOperations或@ManagedAttribute注解标注bean的方法。
+
+如要实现MBean的远程暴露，可选择多种RPC技术，如前文提到的RMI、SOAP、Hessian、Burlap等。远程访问MBean服务器的真正价值在于访问远程服务器上已注册Mbean的属性以及调用它们的方法。
+
+除了被动接受外部通信，也可使用JMX通知（JMX notification）进行主动通信。需要发送通知的MBean需实现NotificationPublisherAware接口 ，而需要监听通知的监听器需要实现NotificationListener接口。
 
 ### 终章 —— Spring Boot
+**Spring Boot致力于简化Spring本身**
+
+它有4大特性：
+- Spring Boot Starter：整合常用依赖，简化Maven/Gradle配置
+- 自动配置：自动配置项目所需要的Bean
+- 命令行接口（Command-line interface，CLI）：结合Grovy简化Spring应用开发
+- Actuator：以依赖的方式为Spring Boot应用添加管理特性
+
+在本书（《Spring实战第四版》）中，作者提到Spring Boot是Spring家族中一个令人兴奋的新项目。比起传统的Spring项目，Spring Boot项目的结构更加清晰。Spring Boot Starter帮助我们管理项目依赖，以前集成一门技术也许会引用好几个包，而在Spring Boot中仅需引用一个Starter即可。Spring Boot的自动配置会在我们进行自动配置一些基础属性，例如使用MongoDB时我们不需任何指定，项目会默认连接本地27017的MongoDB。当项目逐渐扩充，传统的Spring项目中配置文件个数与文件内的条数也会扩充很快，这一点在Spring Boot中得到极大改善。作为新人，也不需要重新学习XML，降低了项目学习的成本。现在微服务大火，Spring Cloud即基于Spring Boot构建，作为一个开发者，站在巨人的肩膀上无疑可以极大地节省开发成本、提高开发的效率。
