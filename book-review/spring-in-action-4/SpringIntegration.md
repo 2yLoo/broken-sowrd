@@ -412,3 +412,80 @@ public class DemoReceiver {
 ```
 
 AMQP中的消费者关注点仍然为队列，但消息到达队列前的步骤发生变化，我们通过配置类来配置各个Exchange，在这个节点上将预配置好每个Exchange处理的routing key与队列，而生产者的关注点则从队列转移到routing key上。
+
+### 使用WebSocket和STOMP实现消息功能
+WebSocket协议提供了通过套接字实现 **全双工通信** 的功能，允许服务器与浏览器之间互相发送消息。
+
+### Spring发送邮件
+Spring Email抽象的核心是MailSender接口。
+
+发邮件之前，应用需要知道邮件服务器是什么，如果服务器需认证，还需要账户密码，这都可以通过配置类加载进项目：
+```
+@Bean
+public MailSender mailSender(Environment env) {
+  JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+  mailSender.setHost(env.getProperty("mailserver.host"));
+  mailSender.setPort(env.getProperty("mailserver.port"));
+  mailSender.setUsername(env.getProperty("mailserver.username"));
+  mailSender.setPassword(env.getProperty("mailserver.password"));
+  return mailSender;
+}
+```
+如果项目是Spring Boot项目，则可直接在配置文件中配置以上属性：
+```
+spring:
+  mail:
+   host: smtp.qq.com
+   username: yamolv@qq.com
+   password: objyjegnkibbbbfe
+```
+
+完成配置后，就可通过JavaMailSender发送邮件了。下面为部分常用的JavaMailSender方法：
+
+| 方法名        | 方法用途                                 |
+| ------------- | ---------------------------------------- |
+| setTo()       | 设置邮件接收者                           |
+| setFrom()     | 设置邮件发送者                           |
+| setSubject()  | 设置邮件主题                             |
+| setText()     | 设置邮件内容，可支持超文本HTML格式的邮件 |
+| setReplyTo()  | 设置邮件回复邮箱                         |
+| setPriority() | 设置邮件优先级                           |
+| setBcc()      | 设置邮件暗送对象                         |
+| setCc()       | 设置邮件抄送对象                         |
+| setSentDate() | 设置邮件发送日期                         |
+
+下面的邮件工具类例子中实现了邮件发送
+```
+@Component
+public class EmailUtil {
+
+    private JavaMailSender javaMailSender;
+
+    @Autowired
+    public EmailUtil(JavaMailSender javaMailSender) {
+        this.javaMailSender = javaMailSender;
+    }
+
+    public void sendEmail(String sendFrom, String sender, String sendTo, String subject, String text) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(sendFrom, sender); // 设置邮件发送者时，还可设置其名称
+            helper.setTo(sendTo);
+            helper.setSubject(subject);
+            helper.setText(text, true); // 第二个参数为true时可传输HTML文本
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            System.out.println("邮件发送异常：");
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("名称解析异常");
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 管理Spring Bean
+
+### 终章 —— Spring Boot
