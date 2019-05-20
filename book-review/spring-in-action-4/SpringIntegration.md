@@ -245,4 +245,170 @@ Spring还提供了一个RestTemplate模板类，它定义了36个与REST资源�
 
 RestTemplate可以帮助我们实现绝大多数与REST资源交互的操作，而REST只是应用间通信的方法之一，Spring还支持借助消息实现异步通信。
 
-#### Spring 消息
+### Spring 异步消息
+#### 什么是异步消息？
+前面提到的通信机制都是同步通信：
+
+![](https://dpzbhybb2pdcj.cloudfront.net/walls5/Figures/17fig01.jpg)
+
+从调用者的角度理解，同步通信即调用后需等待方法返回才能继续执行。大家回想起自己读书的时候，自习时有班主任或老师来镇守班级吗？如果自习铃响了，老师啥也不干，守着学生们自习，自习结束后才回家，这就是“同步”的老师。
+
+异步通信如下：
+
+![](https://dpzbhybb2pdcj.cloudfront.net/walls5/Figures/17fig02.jpg)
+
+调用者发出调用后，不等待其返回，直接执行下去。“异步”的老师会怎么做呢？自习铃响时，委托班长组织自习纪律，自己就可以好好利用这个时间。
+
+在异步通信时，调用者会将消息交给一个服务，再由服务确保将消息投递给被调用者。异步消息有两个主要概念：消息代理（Message Broker）与目的地（Destination）。通过代理的工作，来解耦调用者与被调用者之间的关系。现在广为人知的消息代理（很多时候称为Message Queue，MQ，消息中间件）包括RabbitMQ、RocketMQ、ActiveMQ、Kafka等，它们提供了不同的消息路由模式，但有两种通用模式：队列（Queue）与主题（Topic）。
+
+队列是种点对点的模型，每一条消息都有一个发送者和一个接收者：
+
+![](https://dpzbhybb2pdcj.cloudfront.net/walls5/Figures/17fig03_alt.jpg)
+
+主题是发布——订阅模型，每一条消息还是由一个发送者发出，但是订阅了该主题的接收者都会收到该条消息。
+
+![](https://dpzbhybb2pdcj.cloudfront.net/walls5/Figures/17fig04_alt.jpg)
+
+同步通信虽然好理解、好搭建，但它的也有弊端：
+- 同步通信需等待
+- 客户端通过服务接口与远程服务相耦合
+- 客户端与远程服务的位置耦合
+- 客户端与服务的可用性相耦合
+
+异步通信的优点则有：
+- 客户端无需等待消息处理
+- 异步通信面向消息，客户端与服务端解耦
+- 位置独立，不关心服务的位置
+- 确保投递，消费失败的消息将被重新投递
+
+但并不是说异步通信比同步通信更优，它们的侧重点不同，做选择时还是应贴合实际应用场景选择。
+
+#### 使用JMS
+Java消息服务（Java Message Service, JMS）是一个Java标准，定义了使用消息代理的通用API。Spring通过基于模板类的抽象为JMS功能提供支持，也就是JmsTemplate。
+
+使用传统的JMS与使用JDBC一样，在实现许多简单工作时，也需要不断做重复的获取、释放链接以及捕获异常。Spring提供的JmsTemplate类似于JdbcTemplate，不仅处理了JMSException异常，并且抛出有信息价值的非检查型异常。并且使用它时我们只用关心发送、接收的消息，而无需频繁获取释放连接。
+
+使用消息队列可分3个步骤实现：
+1. 启动服务
+
+  ActiveMQ是一个基于JMS的消息队列。我在Mac上直接使用Homebrew的命令```brew install activemq```进行的安装，其他环境的安装步骤可以[查看官网](https://activemq.apache.org/)。
+
+  安装后运行，运行成功后访问```http://localhost:8161/```即可看到Active的主页。
+2. 发送消息
+
+  在发送消息前，需要在项目中集成ActiveMQ。我用了SpringBoot框架，通过ActiveMQ的starter集成：
+  ```
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-activemq</artifactId>
+  </dependency>
+  ```
+  通过Maven集成后，在零配置的情况下就可使用ActiveMQ（零配置是由Spring Boot的自动默认配置办到的）：
+  ```
+  @Component
+  public class ActiveMQClient {
+
+    @Autowired
+    private JmsTemplate jmsTemplate;
+
+    public void send(String message) {
+        jmsTemplate.convertAndSend("queue.yy", message);
+    }
+  }
+  ```
+3. 接收消息
+
+  使用注解@JmsListener获取指定队列中的消息
+  ```
+  @Component
+  public class ActiveMQServer {
+      @JmsListener(destination = "queue.yy")
+      public void receive(String message) {
+          System.out.println("ActiveMQ 收到消息：" + message);
+      }
+  }
+  ```
+
+很多情况发送一条String的消息不能真切满足我们的需求，则需要使用Spring JMS中的消息转换器：
+
+| 消息转换器                      | 功能                                                                                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MappingJacksonMessageConverter  | 使用Jackson JSON库实现消息与JSON格式之间的互相转换                                                                                                         |
+| MappingJackson2MessageConverter | 使用Jackson 2 JSON库实现消息与JSON格式之间的相互转换                                                                                                       |
+| MarshallingMessageConverter     | 使用JAXB库实现消息与XML格式之间的相互转换                                                                                                                  |
+| SimpleMessageConverter          | 实现String与TextMessage之间的相互转换，字节数组与ByteMessage之间的相互转换，Map与MapMessage之间的相互转换以及Serializable对象与ObjectMessage之间的相互转换 |
+
+默认情况下JmsTemplate在convertAndSend()方法中会使用SimpleMessageConverter，**如果我们传输的是对象，则对应类应实现序列化** 。
+
+JMS是Java应用中主流的消息解决方案，但对Java与Spring开发者来说，JMS并不是唯一的选择。*高级消息队列协议*(Advanced Message Queuing Protocal, AMQP)也得到了Spring的支持。
+
+#### 使用AMQP
+AMQP有JMS所不具备的一些特性（优点）。
+
+其一，JMS定义的是API规范，JMS的API协议能确保所有的实现都通过通用的API使用，但不能保证某个JMS实现所发送的消息能被不同的JMS实现所使用。AMQP为消息定义了线路层的协议，该协议规范了消息的格式，消息的生产者与消费者都会遵循此格式，从而AMQP在协作方面要更强大，它不仅能夸不同的AMQP实现，还能跨语言和平台。
+
+其二，AMQP的消息模型更加灵活与透明。前文提到JMS仅有两种模型，点对点与发布-订阅。AMQP不仅支持这两种模型的实现，还提供了更多的发送消息的方式，这是通过生产者与队列解耦来实现的。
+
+AMQP在消息生产与传递之间引入了一种间接机制——Exchange：
+
+![](https://dpzbhybb2pdcj.cloudfront.net/walls5/Figures/17fig08_alt.jpg)
+
+消息的生产者不再关注消息的目的队列，而是和Exchange对接，由Exchange来决定消息的下一站，它们对接时会用到routing key和参数，它由生产者提供。Exchange拿到routing key和参数后会通过已配置的与队列之间绑定的routing key和参数进行对比。并用自己的路由算法来决定消息发送的队列。AMQP定义了4种不同路由算法的Exchange：
+
+| 算法名  | 释义                                                                                    |
+| ------- | --------------------------------------------------------------------------------------- |
+| Direct  | 如果消息的routing key与binding的routing key直接匹配的话，消息将路由到该队列上           |
+| Topic   | 如果消息的routing key与binding的routing key符合通配符匹配的话，消息将会被路由到该队列上 |
+| Headers | 如果消息参数表中的头信息和值都与binding参数表中匹配，消息将会路由到该队列上             |
+| Fanout  | 不管消息的routing key和参数表的头信息是什么，消息将会路由到所有队列上                   |
+
+其实Exchange就是一层对队列的代理，而通过这层代理，不仅可以轻松实现点对点和发布-订阅的方式，还能解锁更多自定义的路由模式。
+
+RabbitMQ是实现了AMQP协议的一个开源消息队列。站在Spring的肩膀上使用RabbitMQ也非常简单。
+
+启动好RabbitMQ后，通过配置类声明队列：
+```
+@Configuration
+public class RabbitConfig {
+
+    public static final String DEMO_QUEUE = "demo.yy.queue";
+
+    @Bean
+    public Queue demoQueue() {
+        return new Queue(DEMO_QUEUE);
+    }
+}
+```
+
+消息生产者通过Amqp模板类发送消息：
+```
+@Component
+public class DemoSender {
+
+    private AmqpTemplate rabbitTemplate;
+
+    @Autowired
+    public DemoSender(AmqpTemplate amqpTemplate) {
+        this.rabbitTemplate = amqpTemplate;
+    }
+
+    public void publish(String message){
+        this.rabbitTemplate.convertAndSend(RabbitConfig.DEMO_QUEUE, message);
+    }
+}
+```
+
+消费者通过@RabbitHandler与@RabbitListener消费指定队列中的消息：
+```
+@Component
+public class DemoReceiver {
+
+    @RabbitHandler
+    @RabbitListener(queues = RabbitConfig.DEMO_QUEUE)
+    public void receive(String message){
+      System.out.println(message);
+    }
+}
+```
+
+AMQP中的消费者关注点仍然为队列，但消息到达队列前的步骤发生变化，我们通过配置类来配置各个Exchange，在这个节点上将预配置好每个Exchange处理的routing key与队列，而生产者的关注点则从队列转移到routing key上。
