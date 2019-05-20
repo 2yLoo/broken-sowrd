@@ -17,8 +17,8 @@
 - [ ] MongoDB
 - [ ] Redis
 
-### **撸后感** ![](http://progressed.io/bar/85)
-- [ ] [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
+### **撸后感** ![](http://progressed.io/bar/100)
+- [x] [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
 
 ### **消息队列** ![](http://progressed.io/bar/0)
 - [ ] RabbitMQ
