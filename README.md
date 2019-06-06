@@ -23,9 +23,11 @@
 ### **消息队列** ![](http://progressed.io/bar/0)
 - [ ] RabbitMQ
 
-### **项目实践** ![](http://progressed.io/bar/0)
+### **项目实践** ![](http://progressed.io/bar/50)
 - [ ] ELKB日志收集
 - [ ] 容器化 - Docker
+- [ ] MySQL服务迁移
+- [ ] Redis安装爬坑
 
 ### **错题集** ![](http://progressed.io/bar/100)
 
