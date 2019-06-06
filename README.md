@@ -26,8 +26,8 @@
 ### **项目实践** ![](http://progressed.io/bar/50)
 - [ ] ELKB日志收集
 - [ ] 容器化 - Docker
-- [ ] MySQL服务迁移
-- [ ] Redis安装爬坑
+- [ ] [MySQL服务迁移](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/MySQLMigration.md)
+- [ ] [Redis安装爬坑](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/RedisInstall.md)
 
 ### **错题集** ![](http://progressed.io/bar/100)
 
