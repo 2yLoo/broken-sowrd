@@ -98,9 +98,11 @@ admin是该系统的第一名用户，也是最高级系统管理员，拥有整
 ## Harbor使用
 
 ### 后台结构
-![](http://assets.processon.com/chart_image/5d087b65e4b024123ddead45.png?_=1560837334910)
+![后台结构](http://assets.processon.com/chart_image/5d087b65e4b024123ddead45.png?_=1560837334910)
 
 ### 权限说明
+![权限说明](https://github.com/goharbor/harbor/raw/master/docs/img/rbac.png)
+
 Harbor后台系统的账号分为两类：系统管理员/非系统管理员
 
 非系统管理员登录后只可看到公共项目与有权私有项目，以及日志信息。
