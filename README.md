@@ -20,7 +20,8 @@
 ### **撸后感** ![](http://progressed.io/bar/100)
 - [x] [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
 
-### **消息队列** ![](http://progressed.io/bar/0)
+### **其他** ![](http://progressed.io/bar/0)
+- [ ] Docker
 - [ ] RabbitMQ
 
 ### **项目实践** ![](http://progressed.io/bar/50)
