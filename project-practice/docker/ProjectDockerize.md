@@ -17,7 +17,7 @@ Demo对外暴露了一个接口，通过请求`localhost:8080/hello`，返回`Hi
 Controller代码：
 ```
 @RestController
-public class MomentController {
+public class HelloController {
   @RequestMapping("/hello")
   public ResponseResult hello() {
     return "Hi!";
