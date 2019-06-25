@@ -1,0 +1,196 @@
+# 迈入Docker的第一个脚印👣
+
+## 前言
+
+第一次听说Docker这门技术是在前年(2017)年底实习时。而那时的Docker已经很火，两年过去，Docker的热度并未下降，越来越多的公司选择了Docker。我们小组也计划今年实行项目的容器化。
+
+闲话说了这么多，下面来点干货吧。
+
+## Docker简介
+
+### 什么是容器？
+
+了解Docker前，需要先知道容器的定义：**一个标准化的软件单元**
+
+从历史角度看，越来越多的应用部署从物理机迁移到了虚拟机。
+
+下图展示了应用运行在虚拟机上的结构：
+
+![应用部署虚拟机](https://www.docker.com/sites/default/files/d8/2018-11/container-vm-whatcontainer_2.png)
+
+每个虚拟机包括一个操作系统的完整副本、应用程序、必要的二进制文件和库。这会占用数十个GB大小。而虚拟机的启动速度通常也比较慢。
+
+后来容器（Jail）的概念提了出来，用以描述一个修改过的运行时环境，以防止该程序访问收保护的资源。而后来目标也已从防止对受保护资源的访问扩展到隔离所有的资源（除非允许）。
+
+手动创建容器的风险很高，配置易出错。**Docker解决了这个难题**，任何在Docker中运行的软件都是运行在一个容器中。
+
+下面是应用运行在Docker上的结构：
+![应用Docker化](https://www.docker.com/sites/default/files/d8/styles/large/public/2018-11/container-what-is-container.png?itok=vle7kjDj)
+
+与前面不同的是，Docker将宿主机操作系统与实际应用隔离开，容器化的应用（也就是容器）直接运行在Docker上。多个容器可运行在同一台机器上，可与其他容器共享OS内核，每个容器都作为用户空间中的独立进程运行。容器比虚拟机占用更少的空间（几十MB大小），可以处理更多的应用程序，并需要更少的VM和操作系统。
+
+### 什么是Docker？
+
+**Docker一个轻量级容器管理引擎，它是操作系统级别的虚拟化。** Docker是一种强大的工具，可以帮助解决如安装、拆卸、升级、分发、信任和管理软件等常见问题。
+
+使用Docker离不开以下几个组件：
+- Docker引擎：也就是Docker的客户端与服务器，用于发送、执行Docker命令。
+
+- Docker镜像：镜像是构建Docker世界的基石。它就像容器的“源代码”，属于Docker生命周期中的构建部分。镜像体积很小，易于分享、存储与更新。
+
+- Registry：存放Docker镜像的仓库。
+
+- Docker容器：Docker镜像的实例。一个容器可以根据镜像构建起来并运行，也可以停止与重启。
+
+### Docker能做什么？
+借用《第一本Docker书》的话来说，它能干事情：
+- 加速本地开发和构建流程，使其高效化、轻量化
+- 保证服务或应用的运行结构不受环境控制
+- 创建隔离环境进行测试
+- 将生产环境的复杂框架轻量的模拟到开发环境
+- 构建多用户平台服务基础设施
+- 提供轻量级独立沙盒环境
+- 提供软件即服务应用程序
+- 高性能、超大规模宿主机部署
+
+具体来说，我用Docker干了这些事情：
+
+- 在Mac上运行Linux环境，加深对Linux系统的了解
+- 部署各种服务：Redis、MongoDB、RabbitMQ等
+- 将公司项目Docker化
+- 部署公司Docker私有仓库
+- etc...
+
+### 镜像与容器二三话
+
+使用Docker时得频繁与镜像以及容器打交道。很有必要先搞清楚它们的概念与关系。
+
+镜像与容器的关系，和Java中类与对象的关系有点相似：我们编写一个类时，要定义它的属性、它的方法，使用它时，直接new一个对象出来。在Docker中，容器是根据相应镜像这个模板制造出来的。
+
+想象我们在一台Linux机器上部署了一个Redis服务。我们想要运行Ubuntu的什么版本呢？Redis需要什么版本呢？这些“约束”即镜像的管辖范围，它指定Ubuntu、Redis的版本。而这台Linux服务器即可理解为一个容器，我们直接通过对容器的启动、停止来控制Redis服务的启动、停止。只要生成一个镜像，就可使用它在各处运行容器。镜像本身的大小是很有限的，我们可以把镜像给存储到仓库中，方便我们重复使用，我们还可在仓库中对镜像进行更新。
+
+## 安装Docker
+使用Docker不受平台限制，Linux、MacOS以及Windows都可安装使用Docker。
+
+### 在Ubuntu和Debian中安装Docker
+
+### 在CentOS中安装Docker
+如果该环境中存在旧版本的Docker，执行以下命令以卸载旧版本：
+```
+sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+```
+然后依次执行以下命令：
+```
+// 添加依赖包
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+
+// 添加Repository
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+// 国内环境可使用阿里云的Repository
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+// 安装Docker（默认最新稳定版本）
+sudo yum install docker-ce docker-ce-cli containerd.io
+
+// 启动服务
+sudo systemctl start docker
+```
+当系统版本不高，可尝试执行以下步骤：
+```
+// 删除之前配置的Repository
+sudo rm /etc/yum.repos.d/docker-ce.repo
+
+// 添加Repository，内容在下文可见
+sudo vim /etc/yum.repos.d/docker.repo
+
+// 安装Docker引擎
+sudo yum install docker-engine
+
+// 启动服务
+sudo service docker start
+```
+
+docker.repo内容：
+```
+[dockerrepo]
+name=Docker Repository
+baseurl=https://yum.dockerproject.org/repo/main/centos/6/
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.dockerproject.org/gpg
+```
+
+### 在OS X中安装Docker
+
+### 在Windows中安装Docker
+
+## Docker入门
+`docker --help` 是帮助快速入手Docker的利器，它会罗列许多Docker命令行工具的基本语法，具有 **权威性与可读性**。刚入门时可向其寻求大量帮助。
+
+`docker ps --help`与`docker help ps`都可查看`docker ps`的使用帮助其他命令使用方式相似。
+
+>我认为养成从官方获取信息的习惯对自己的提升很有帮助。
+
+在入门阶段，以下几个命令与参数是我们经常打交道的，但不限于此：
+
+| 命令                          | 参数         | 说明                                                                      |
+| ----------------------------- | ------------ | ------------------------------------------------------------------------- |
+| docker ps                     |              | 展示正在运行的容器                                                        |
+|                               | -a           | 展示所有已存在容器（包括正在运行与未运行的容器）                          |
+|                               | -q           | 仅展示容器的id                                                            |
+|                               | -l           | 展示最近创建的容器                                                        |
+|                               | -s           | 展示容器的大小                                                            |
+| docker images                 |              | 展示现有的镜像（不包括中间镜像）                                          |
+|                               | -a           | 展示所有镜像（包括中间镜像）                                              |
+|                               | -q           | 仅展示镜像的id                                                            |
+| docker pull imageName:tagName |              | 从镜像仓库拉取指定标签的指定镜像，标签省略时默认拉取latest标签的镜像      |
+| docker run imageName          |              | 根据指定镜像运行容器                                                      |
+|                               | -i           | 持保证容器中STDIN是开启的，持久的标准输入，是交互式容器的半边天           |
+|                               | -t           | 为创建的容器分配一个伪tty终端，交互式容器的另半边天                       |
+|                               | -d           | 后台运行                                                                  |
+|                               | -p 8080      | Docker在宿主机上随机选择一个位于32768~61000的端口来与容器中的8080端口映射 |
+|                               | -p 8080:8080 | 形成容器8080端口与宿主机端口8080之间的映射                                |
+| docker start <container..>    |              | 运行指定容器，可根据id或名称指定容器，一次可传入多个id/名称               |
+| docker stop <container..>     |              | 停止指定容器，规则同上                                                    |
+| docker restart <container..>  |              | 重启指定容器，规则同上                                                    |
+| docker rm <container..>       |              | 删除指定容器，规则同上                                                    |
+| docker rmi <image..>          |              | 删除指定镜像，可根据id或名称指定镜像，一次可传入多个id/                   |
+| docker attach                 |              | xxx                                                                          |
+
+### 第一个Docker容器：
+
+运行`docker run --name first_container -it ubuntu /bin/bash`后，我们就启动了一个ubuntu系统的容器。它是依赖镜像ubuntu运行的，在此我们没有指定其镜像标签，默认使用ubuntu:latest这个镜像。如果我们本地没有该镜像，Docker则会从远程仓库将镜像下载到本地。并且这个容器名为"first_container"。我们可以在这个ubuntu系统里安装我们想要的软件，或者用于对ubuntu系统命令的学习，这都是老少咸宜的。
+
+此时打开另一个命令行窗口，输入`docker ps`，即可查看到已运行的容器：
+
+| CONTAINER ID         | IMAGE        | COMMAND | CREATED  | STATUS | PORTS      | NAMES    |
+| -------------------- | ------------ | ------- | -------- | ------ | ---------- | -------- |
+| 容器ID（具有唯一性） | 依赖的镜像名 | 命令    | 创建时间 | 状态   | 暴露的端口 | 容器名称 |
+
+为了加深对容器这个概念的理解，我在根目录下创建了/data目录，并在/data目录创建了一个文件`temp.log`，写上`This's my first Docker container!`。此后通过`exit`退出该容器。
+
+继续输入`docker ps`后，刚展示的容器信息消失了，说明此容器没有运行。
+
+如果我们重新执行`docker run -it ubuntu /bin/bash`，会创建一个 **新容器** ，新容器中不会有`/data`目录以及刚我们新建的文件`temp.log`。如果我们想运行我们的第一个容器呢？
+
+先输入`docker ps -a`将正在运行与未运行的容器都列出来，找到我们的初恋容器后，执行`docker start first_container`将容器运行起来，此处可通过容器名/容器id来启动容器。
+
+容器运行后，通过`docker attach first_container`进入此容器内。我们可以在此容器中发现刚创建的文件。
+
+### 第二讲
+
+## 推荐阅读
+
+- 《第一本Docker书》
+  偏向对基础的总结。本书的作者是Docker公司的顾问，权威性自不用言。这本书对小白的支持十分友好。充足的案例与命令解释给枯燥的原理润色不少，我也是跟着书中的命令同步在本机实现，对本书知识点的吸收效果非常好。并且书中的大量Dockerfile都可在Github上找到，这简直是小白的福音。美中不足的是，我买的中文版还是有点表述上的疏漏，但它们往往出现在一些无关紧要的地方，不会干扰到对Docker的学习。
+
+- 《Docker实战》
+  《\*实战》系列丛书，运用更丰富的实战经验讲解了对Docker的使用，书中第一部分也对Docker进行了基础的介绍，后面重点集中在“Docker化”与服务部署编排等方向上。
