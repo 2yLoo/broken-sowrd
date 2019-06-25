@@ -4,19 +4,26 @@
 1. Docker（可参考[Docker入门](https://github.com/2yLoo/broken-sowrd/blob/master/open-sources/docker/FirstInDocker.md)）
 2. Registry（镜像仓库，此处使用了[Harbor](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/Harbor.md)）
 
-接下来按步骤可大致分为3步：
-1. SpringBoot的Maven项目：选用SpringBoot项目作为Demo，易部署；并使用Maven插件生成镜像
+接下来按工作重心可划分为3步：
+1. SpringBoot + Maven：选用SpringBoot项目作为Demo，易构建；使用Maven插件配置镜像相关信息
 2. Jenkins + Maven + Docker：通过Jenkins的Maven插件进行项目打包配置，并使用Maven结合Demo项目执行Docker操作
-3. docker-compose：部署实施
+3. docker-compose：从Registry获取镜像并部署实施
 
-从镜像声明周期的角度看，这3步分别对应：
-
-Demo项目（镜像生成前） -> Jenkins + Maven + Docker（生成镜像） -> docker-compose（使用镜像）
-
-## Demo项目：
+## Demo项目（镜像生成前）：
 为此项目搭建了一个基于SpringBoot的Demo。该Demo用于模拟实际项目，是镜像生成的出发点。
 
 Demo对外暴露了一个接口，通过请求`localhost:8080/hello`，返回`Hi!`。
+
+Controller代码：
+```
+@RestController
+public class MomentController {
+  @RequestMapping("/hello")
+  public ResponseResult hello() {
+    return "Hi!";
+  }
+}
+```
 
 为了使用Maven插件生成镜像，需要在pom文件中添加如下配置：
 ```
@@ -48,7 +55,7 @@ Demo对外暴露了一个接口，通过请求`localhost:8080/hello`，返回`Hi
 </plugin>
 ```
 
-## Jenkins + Maven + Docker
+## Jenkins + Maven + Docker（生成镜像）
 这一步有着承上启下的关键作用，使用Jenkins打包的服务器上至少需要3个软件：Jenkins、Maven以及Docker。在它们的相互作用下才能完成镜像的生成与上传。
 
 ### Jenkins
@@ -173,7 +180,7 @@ Error pushing to registry: Server error: 413 trying to push library/demo blob - 
 
 
 
-## docker-compose
+## docker-compose（使用镜像）
 最后一步是运行容器，此收尾工作较前两步简单。
 
 拉取镜像后，通过docker-compose将其运行起来。
