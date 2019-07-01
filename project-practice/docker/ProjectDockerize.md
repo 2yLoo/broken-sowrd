@@ -1,13 +1,12 @@
 # 项目“Docker化”
 
-在进行项目“Docker化”前，了解相关基础可能会更有帮助：
+在进行项目“Docker化”前，了解相关基础知识可能会更有帮助：
 1. Docker（可参考[Docker入门](https://github.com/2yLoo/broken-sowrd/blob/master/open-sources/docker/FirstInDocker.md)）
 2. Registry（镜像仓库，此处使用了[Harbor](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/Harbor.md)）
 
 接下来按工作重心可划分为3步：
-1. SpringBoot + Maven：选用SpringBoot项目作为Demo，易构建；使用Maven插件配置镜像相关信息
-2. Jenkins + Maven + Docker：通过Jenkins的Maven插件进行项目打包配置，并使用Maven结合Demo项目执行Docker操作
-3. docker-compose：从Registry获取镜像并部署实施
+
+![步骤流程](http://assets.processon.com/chart_image/5d197312e4b02f3e4dae463e.png?_=1561949260124)
 
 ## Demo项目（镜像生成前）：
 为此项目搭建了一个基于SpringBoot的Demo。该Demo用于模拟实际项目，是镜像生成的出发点。
@@ -230,7 +229,14 @@ demo:
    - "8080:8080"
   environment:
     SPRING_PROFILES_ACTIVE: prod
+  volumes:
+  - /data/logs:/data/logs
 ```
+
+- `image`：指定拉取的镜像，可配置成从官方仓库或私有仓库的镜像地址
+- `ports`：指定暴露的端口
+- `environment`：指定生效的Spring环境
+- `volumes`：指定挂载目录，可用于收集日志
 
 运行命令：`docker-compose -f docker-compose.yml up -d`。
 

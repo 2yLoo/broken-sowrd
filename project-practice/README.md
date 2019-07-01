@@ -8,6 +8,8 @@
 
 - [第三方Docker-hub搭建](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/Harbor.md)
 
+- [项目“Docker化”（一） —— 实现镜像生成与容器运行](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/ProjectDockerize.md)
+
 ### 其他
 
 - [MySQL环境迁移](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/MySQLMigration.md)
