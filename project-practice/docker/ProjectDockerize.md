@@ -9,7 +9,7 @@
 ![步骤流程](http://assets.processon.com/chart_image/5d197312e4b02f3e4dae463e.png?_=1561949260124)
 
 ## Demo项目（镜像生成前）：
-为此项目搭建了一个基于SpringBoot的Demo。该Demo用于模拟实际项目，是镜像生成的出发点。
+搭建一个基于SpringBoot的Demo。该Demo用于模拟实际项目，是镜像生成的出发点。
 
 Demo对外暴露了一个接口，通过请求`localhost:8080/hello`，返回`Hi!`。
 
@@ -54,8 +54,27 @@ public class HelloController {
 </plugin>
 ```
 
+在pom插件中指定了生成镜像所使用的Dockerfile：
+
+`<dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>`
+
+在项目的 `/src/main/` 目录下新建目录 `docker` ，然后在 `docker` 目录中新建文件 `Dockerfile` ，内容如下：
+
+```
+FROM java:8
+VOLUME /tmp
+ADD demo.jar app.jar
+RUN bash -c 'touch /app.jar'
+EXPOSE 8080
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "/app.jar"]
+```
+
+然后将代码push到远程分支，这个步骤就算完成了。
+
 ## Jenkins + Maven + Docker（生成镜像）
-这一步有着承上启下的关键作用，使用Jenkins打包的服务器上至少需要3个软件：Jenkins、Maven以及Docker。在它们的相互作用下才能完成镜像的生成与上传。
+这一步有着承上启下的关键作用，使用Jenkins打包的服务器上至少需要3个软件：Jenkins、Maven以及Docker。
+
+通过 **Jenkins+Maven** 将远程仓库中的代码打成jar包，然后由 **Maven+Docker** 将jar包生成为镜像，并push到镜像仓库。
 
 ### Jenkins
 登录Jenkins后新建项目，选择 **构建一个Maven项目** 。
@@ -91,7 +110,30 @@ Docker的安装可参考[官方文档](https://docs.docker.com/install/linux/doc
 
 #### 错误记录
 
-##### 支持HTTP请求Docker仓库私服
+##### Jenkins打包报错：Must specify baseImage if dockerDirectory is null
+造成该错误的原因是项目中的某个模块没有配置Docker Maven插件。这个报错可能发生在公共模块中。
+
+如果项目中有两个模块，存放通用工具和实体类的公共模块与实际处理请求的业务模块，仅在业务模块的pom文件配置Maven插件时，通过Jenkins打包会报错。
+
+###### 解决办法
+在公共模块的pom文件中，加入如下内容：
+```
+<build>
+    <plugins>
+        <plugin>
+            <groupId>com.spotify</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>0.4.13</version>
+            <configuration>
+                <skipDockerBuild>true</skipDockerBuild>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+这样Jenkins打包时会跳过公共模块。
+
+##### 不支持HTTP请求Docker仓库私服
 Docker仓库默认仅支持HTTPS协议的请求，这也是出于保护仓库安全的考虑。
 
 我新建的Docker第三方仓库（Harbor）暂没配置HTTPS证书，于是需要在客户端进行额外的配置才可使用HTTP请求连接仓库。
@@ -132,7 +174,7 @@ other_args="--insecure-registry your.docker-hub.com"
 ```
 此时再重启，登录成功✌️
 
-##### 推送镜像
+##### 推送镜像失败
 在登录成功后，推送镜像失败，报错大致如下：
 ```
 The push refers to a repository [your.docker-hub.com/library/demo] (len: 1)
