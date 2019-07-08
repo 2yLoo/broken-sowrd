@@ -6,27 +6,34 @@
 > 一份来自2yLoo的开发&学习记录，取名来于**断剑重铸之日，骑士归来之时**
 
 ### **Java基础**
-- [x] [基础包装类](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/lang/wraps.md)(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
-- [x] [List](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/List.md)(ArrayList, LinkedList)
-- [ ] [Map(HashMap, LinkedHashMap, TreeMap)](https://github.com/2yLoo/broken-sowrd/tree/master/java-base/util/Map)
-- [ ] [Set](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/Set.md)(HashSet, LinkedHashSet, TreeSet)
-- [ ] Queue(PriorityQueue)
+- [基础包装类](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/lang/wraps.md)(Byte, Short, Integer, Long, Float, Double, Character, Boolean)
+- [List](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/List.md)(ArrayList, LinkedList)
+- [Map(HashMap, LinkedHashMap, TreeMap)](https://github.com/2yLoo/broken-sowrd/tree/master/java-base/util/Map)
+- [Set](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/Set.md)(HashSet, LinkedHashSet, TreeSet)
 
 ### **开源学习**
-- [x] [Docker](https://github.com/2yLoo/broken-sowrd/tree/master/open-sources/docker)
+- [Docker](https://github.com/2yLoo/broken-sowrd/tree/master/open-sources/docker)
 
 ### **撸后感**
-- [x] [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
+- [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
 
 ### **项目实践**
-- [x] [第三方Docker-hub私服搭建](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/ProjectDockerize.md)
-- [x] [项目容器化(Dockerize)](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/ProjectDockerize.md)
-- [x] [MySQL服务迁移](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/MySQLMigration.md)
+- [第三方Docker-hub私服搭建](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/ProjectDockerize.md)
+- [项目容器化(Dockerize)](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/docker/ProjectDockerize.md)
+- [MySQL服务迁移](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/MySQLMigration.md)
 
 ### **错题集**
-- [x] [Java错误收录](https://github.com/2yLoo/broken-sowrd/blob/master/mistake-record/JavaTrouble.md)
-- [x] [Docker错误收录](https://github.com/2yLoo/broken-sowrd/blob/master/mistake-record/DockerTrouble.md)
-- [x] [记一次Redis安装爬坑](https://github.com/2yLoo/broken-sowrd/blob/master/mistake-record/RedisInstall.md)
+- [Java错误收录](https://github.com/2yLoo/broken-sowrd/blob/master/mistake-record/JavaTrouble.md)
+- [Docker错误收录](https://github.com/2yLoo/broken-sowrd/blob/master/mistake-record/DockerTrouble.md)
+- [记一次Redis安装爬坑](https://github.com/2yLoo/broken-sowrd/blob/master/mistake-record/RedisInstall.md)
+
+### **TODO**
+- [ ] Java基础 - Queue
+- [ ] 开源学习 - MongoDB
+- [ ] 开源学习 - Redis
+- [ ] 开源学习 - MySQL
+- [ ] 开源学习 - RabbitMQ
+- [ ] 开源学习 - Docker第二讲
 
 ### **联系作者**
 ***罗洋漾 yamolv@qq.com*** :bowtie:
