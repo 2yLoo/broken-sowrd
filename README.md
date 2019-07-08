@@ -14,10 +14,6 @@
 
 ### **开源学习**
 - [x] [Docker](https://github.com/2yLoo/broken-sowrd/tree/master/open-sources/docker)
-- [ ] RabbitMQ
-- [ ] MySQL
-- [ ] MongoDB
-- [ ] Redis
 
 ### **撸后感**
 - [x] [《Spring 实战（第4版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)
