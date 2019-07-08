@@ -2,9 +2,9 @@
 
 ## 前言
 
-第一次听说Docker这门技术是在前年(2017)年底实习时。而那时的Docker已经很火，两年过去，Docker的热度并未下降，越来越多的公司选择了Docker。我们小组也计划今年实行项目的容器化。
+第一次听说Docker这门技术是在前年(2017)年底实习。当时的Docker已经很火，两年过去，Docker的热度并未下降，越来越多的公司选择了Docker。我们小组也计划今年实行项目的容器化。
 
-闲话说了这么多，下面来点干货吧。
+这是前言。
 
 ## Docker简介
 
@@ -12,7 +12,7 @@
 
 了解Docker前，需要先知道容器的定义：**一个标准化的软件单元**
 
-从历史角度看，越来越多的应用部署从物理机迁移到了虚拟机。
+从历史发展角度看，线上环境中，越来越多的应用部署从物理机迁移到了虚拟机。
 
 下图展示了应用运行在虚拟机上的结构：
 
@@ -65,14 +65,35 @@
 
 使用Docker时得频繁与镜像以及容器打交道。很有必要先搞清楚它们的概念与关系。
 
-镜像与容器的关系，和Java中类与对象的关系有点相似：我们编写一个类时，要定义它的属性、它的方法，使用它时，直接new一个对象出来。在Docker中，容器是根据相应镜像这个模板制造出来的。
+在Docker中，容器是根据相应镜像这个模板制造出来的。
 
-想象我们在一台Linux机器上部署了一个Redis服务。我们想要运行Ubuntu的什么版本呢？Redis需要什么版本呢？这些“约束”即镜像的管辖范围，它指定Ubuntu、Redis的版本。而这台Linux服务器即可理解为一个容器，我们直接通过对容器的启动、停止来控制Redis服务的启动、停止。只要生成一个镜像，就可使用它在各处运行容器。镜像本身的大小是很有限的，我们可以把镜像给存储到仓库中，方便我们重复使用，我们还可在仓库中对镜像进行更新。
+想象我们在一台Linux机器上部署了一个Redis服务。我们想要运行Ubuntu的什么版本呢（抛开Docker，操作系统版本可能只能被动接受，而无法主动选择）？Redis需要什么版本呢？这些“约束”即镜像的管辖范围，它指定Ubuntu、Redis的版本。而这台Linux服务器即可理解为一个容器，我们直接通过对容器的启动、停止来控制Redis服务的启动、停止。只要生成一个镜像，就可使用它在各处运行容器。镜像本身的大小是很有限的，我们可以把镜像给存储到仓库中，方便我们重复使用，我们还可在仓库中对镜像进行更新。
 
 ## 安装Docker
 使用Docker不受平台限制，Linux、MacOS以及Windows都可安装使用Docker。
 
 ### 在Ubuntu和Debian中安装Docker
+```
+// 更新apt源
+sudo apt-get update
+
+// 允许apt命令基于HTTPS使用仓库
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+
+// 添加Docker官方GPG秘钥
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+// 安装Docker组件
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+// 或安装Docker引擎
+sudo apt-get install docker-engine
+```
 
 ### 在CentOS中安装Docker
 如果该环境中存在旧版本的Docker，执行以下命令以卸载旧版本：
@@ -103,7 +124,8 @@ sudo yum install docker-ce docker-ce-cli containerd.io
 // 启动服务
 sudo systemctl start docker
 ```
-当系统版本不高，可尝试执行以下步骤：
+
+当系统版本不高，以上步骤执行后可能出现安装失败的情况，下面是一个低版本（Docker 1.7.1）的安装步骤：
 ```
 // 删除之前配置的Repository
 sudo rm /etc/yum.repos.d/docker-ce.repo
@@ -129,8 +151,29 @@ gpgkey=https://yum.dockerproject.org/gpg
 ```
 
 ### 在OS X中安装Docker
+许多Mac用户都安装了Brew神器。使用Brew安装Docker是一件十分便捷的事情。
+
+```
+// 在Brew下搜索Docker
+brew search docker
+
+// 安装Docker Cask
+brew cask install docker
+```
+然后，像安装其他软件一样，将Docker拖入Applications即可。
 
 ### 在Windows中安装Docker
+1. 进入网站：https://www.docker.com/get-started
+
+2. 右下角找到并点击 **Download Desktop and Take a Tutorial**
+
+  - 如果没有注册过Docker，需要注册一个Docker账号，或选择已有账号登录。
+
+3. 继续找到页面右边 **Download Docker Desktop** 弹出新界面
+
+4. 在新界面中点击 **Download Docker Desktop for Windows**
+
+5. 双击下载好的exe文件，安装Docker
 
 ## Docker入门
 `docker --help` 是帮助快速入手Docker的利器，它会罗列许多Docker命令行工具的基本语法，具有 **权威性与可读性**。刚入门时可向其寻求大量帮助。
