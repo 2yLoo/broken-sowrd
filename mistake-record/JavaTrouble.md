@@ -46,3 +46,94 @@ Caused by: java.lang.UnsupportedClassVersionError: com/tcl/mibc/log/CommonInfoLo
 
 #### 解决
 第三方包内并没用到Java8特性，经沟通将第三方包的Java版本指定为1.7，重新deploy后，本项目通过Jenkins重新打包并在测试机重启服务后运行正常。
+
+## 多数据源配置失败
+使用多MongoDB数据源时，配置相应数据库失效。
+
+#### 代码
+第一个配置类如下：
+```
+@Configuration
+@EnableMongoRepositories(basePackages = {"com.2y.demo.repository.one"},
+        mongoTemplateRef = OneMongodbConfig.MONGO_TEMPLATE)
+public class OneMongodbConfig extends AbstractMongoConfiguration {
+
+    @Value("${spring.data.one.mongodb.uri}")
+    private String uri;
+
+    @Value("${spring.data.one.mongodb.database}")
+    private String dbName;
+
+    static final String MONGO_TEMPLATE = "oneMongoTemplate";
+
+    @Override
+    public String getDatabaseName() {
+        return dbName;
+    }
+
+    @Override
+    public Mongo mongo() {
+        MongoClientURI mongoClientURI = new MongoClientURI(uri);
+        return new MongoClient(mongoClientURI);
+    }
+
+    @Override
+    @Bean(name = MONGO_TEMPLATE)
+    public MongoTemplate mongoTemplate() throws Exception {
+        MappingMongoConverter converter = mappingMongoConverter();
+        converter.setTypeMapper(new DefaultMongoTypeMapper(null));
+        return new MongoTemplate(mongoDbFactory(), converter);
+    }
+}
+```
+
+第二个配置类如下：
+```
+@Configuration
+@EnableMongoRepositories(basePackages = {"com.2y.demo.repository.two"},
+        mongoTemplateRef = TwoMongodbConfig.MONGO_TEMPLATE)
+public class TwoMongodbConfig extends AbstractMongoConfiguration {
+
+    @Value("${spring.data.two.mongodb.uri}")
+    private String uri;
+
+    @Value("${spring.data.two.mongodb.database}")
+    private String dbName;
+
+    static final String MONGO_TEMPLATE = "twoMongoTemplate";
+
+    @Override
+    public String getDatabaseName() {
+        return dbName;
+    }
+
+    @Override
+    public Mongo mongo() {
+        MongoClientURI mongoClientURI = new MongoClientURI(uri);
+        return new MongoClient(mongoClientURI);
+    }
+
+    @Override
+    @Bean(name = MONGO_TEMPLATE)
+    public MongoTemplate mongoTemplate() throws Exception {
+        MappingMongoConverter converter = mappingMongoConverter();
+        converter.setTypeMapper(new DefaultMongoTypeMapper(null));
+        return new MongoTemplate(mongoDbFactory(), converter);
+    }
+}
+```
+
+而相应的one和two两个包下的Repository只使用了其中的一个数据源。
+
+#### 问题发现
+真正与MongoDB建立连接是配置在MongoDbFactory中，这两个数据源使用了同一个MongoDbFactory。如果SpringBoot启动时，先生效OneMongodbConfig，此时其父类会实例化一个MongoDbFactory，等SrpingBoot加载第二个配置类时，发现已有MongoDbFactory的Bean，则不再实例化另一个MongoDbFactory。
+
+#### 解决方案
+在两个配置类中都重写方法`mongoDbFactory()`，并配置不同的Bean名：
+```
+@Override
+@Bean(name = "oneMongoDBFactory")
+public MongoDbFactory mongoDbFactory() throws Exception {
+    return super.mongoDbFactory();
+}
+```
