@@ -61,7 +61,7 @@ public List<String> method() {
 ```
 public void method() {
     Collection<String> collection = new ArrayList<>();
-    // add some element to collection
+    // add some elements to collection
     Stream<String> stream = collection.stream();
 }
 ```
@@ -71,7 +71,7 @@ public void method() {
 ```
 public void method() {
     String[] arr = new String[5];
-    // add some element to array
+    // add some elements to array
     Stream<String> stream = Arrays.stream(arr);
 }
 ```
@@ -79,7 +79,7 @@ public void method() {
 ```
 public void method() {
     int[] arr = new int[5];
-    // add some element to array
+    // add some elements to array
     IntStream stream = Arrays.stream(arr);
 }
 ```
@@ -104,7 +104,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     Stream<String> originalStream = list.stream();
     Stream<String> newStream = originalStream.filter(s -> s.startsWith("A"));
 }
@@ -115,7 +115,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     Stream<String> originalStream = list.stream();
     Stream<String> newStream = originalStream.limit(10);
 }
@@ -127,7 +127,7 @@ public void method() {
 public void method() {
     List<String> list = new ArrayList<>();
     list.add("A1");
-    // add some element to list
+    // add some elements to list
     Stream<String> originalStream = list.stream();
     Stream<String> newStream = originalStream.skip(10);
 }
@@ -137,7 +137,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     Stream<String> originalStream = list.stream();
     Stream<String> newStream = originalStream.distinct();
 }
@@ -148,7 +148,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     Stream<String> originalStream = list.stream();
     Stream<String> newStream = originalStream.sorted();
     // Stream<String> newStream = originalStream.sorted(Comparator.comparing(String::length));
@@ -156,12 +156,23 @@ public void method() {
 ```
 `sorted()` 方法会将元素进行排序并返回新流，排序元素需实现 `Comparable` 接口。或者传入一个自定义的 `Comparator` 。
 
+- 对元素执行操作
+```
+public void method() {
+    List<String> list = new ArrayList<>();
+    // add some elements to list
+    Stream<String> stream = list.stream().peek(s -> System.out.println("Fetching "+ s));
+    stream.collect(Collectors.toSet());
+}
+```
+`peek()` 方法会将流中的元素传递给action方法中。
+
 #### 终结操作
 - 执行方法
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     list.stream().forEach(System.out::println);
 }
 ```
@@ -171,7 +182,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     long size = list.stream().count();
 }
 ```
@@ -181,7 +192,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     Object[] arr = list.stream().toArray();
     String[] strArr = list.stream().toArray(String[]::new);
 }
@@ -192,7 +203,7 @@ public void method() {
 ```
 public void method() {
     List<String> list = new ArrayList<>();
-    // add some element to list
+    // add some elements to list
     List<String> newList = list.stream().collect(Collectors.toList());
     Set<String> newSet = list.stream().collect(Collectors.toSet());
 }
