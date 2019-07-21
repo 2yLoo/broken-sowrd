@@ -10,6 +10,8 @@
 - [List](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/List.md)(ArrayList, LinkedList)
 - [Map(HashMap, LinkedHashMap, TreeMap)](https://github.com/2yLoo/broken-sowrd/tree/master/java-base/util/Map)
 - [Set](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/util/Collection/Set.md)(HashSet, LinkedHashSet, TreeSet)
+- [Stream基础知识与运用](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/notes/StreamBase.md)
+- [Stream扩展运用](https://github.com/2yLoo/broken-sowrd/blob/master/java-base/notes/StreamExtension.md)
 
 ### **开源学习**
 - [Docker](https://github.com/2yLoo/broken-sowrd/tree/master/open-sources/docker)

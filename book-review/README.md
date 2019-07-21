@@ -16,6 +16,8 @@
 - [📗 《Spring实战（第四版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)，基于Spring应用的实战指南，面向新人友好。
 - 📙 《重构——改善既有代码的设计》，写给机器看懂的是语言，写给人看懂的是艺术。
 - 📙 《Java编程思想》，有助于巩固Java基础知识，一刷许多疑惑，吸收效果有限，需二刷三刷。
+- 📙 《Java核心技术卷 Ⅰ》，把Java的基础知识讲的很明白，吸收效果很好，并且该数最新版本已基于Java8更新。
+- 📕 《Java核心技术卷 II》
 
 ### 持久化
 - 📕 《高性能MysQL》
