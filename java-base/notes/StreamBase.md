@@ -133,6 +133,19 @@ public void method() {
 }
 ```
 
+- 拼接流
+```
+public void method() {
+    List<String> first = new ArrayList<>();
+    List<String> second = new ArrayList<>();
+    // add some elements to list
+    Stream<String> firstStream = first.stream().limit(2);
+    Stream<String> secondStream = second.stream().skip(2);
+    Stream<String> stream = Stream.concat(firstStream, secondStream);
+}
+```
+不仅可以通过 `limit()` 和 `skip()` 截取流，也可通过Stream的静态方法 `contact` 拼接两个流。
+
 - 获取元素唯一的流
 ```
 public void method() {
