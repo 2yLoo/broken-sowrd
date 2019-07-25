@@ -93,7 +93,7 @@ a29f2b1e7978        2 years ago         /bin/sh -c #(nop) ADD file:89ecb642d662e
 
 我们可以通过命令 `docker images -f "dangling=true"` 查看"dangling"镜像。
 
-### 重新使用"dangling"镜像
+#### 重新使用"dangling"镜像
 "dangling"镜像可用于历史版本的镜像储备，但作为储备，它提供的信息似乎又太少了点。
 
 如果服务器中部署的Docker容器不止一个，有很多不同的镜像都有机会产生"dangling"镜像，仅通过镜像ID是无法直观获取其镜像含义的。
@@ -106,7 +106,7 @@ a29f2b1e7978        2 years ago         /bin/sh -c #(nop) ADD file:89ecb642d662e
 
 此时再查看"dangling"镜像时，刚被赋予了名字与tag的镜像不会出现在该列表中。
 
-### 不友好的处理"dangling"镜像
+#### 不友好的处理"dangling"镜像
 我是在使用 `docker-compose` 的过程中注意到"dangling"镜像的。 `docker-compose pull` 只负责拉取相关镜像，而不会处理旧镜像，这样也就产生了"dangling"镜像了。
 
 如何才能优雅的处理"dangling"镜像呢？
@@ -188,58 +188,77 @@ a29f2b1e7978        2 years ago         /bin/sh -c #(nop) ADD file:89ecb642d662e
 
 ### 清理Docker无用对象
 
-  Docker官方文档中有一篇文档针对清理无用的Docker对象：[Prune unused Docker objects](https://docs.docker.com/config/pruning/)
+Docker官方文档中有一篇文档针对清理无用的Docker对象：[Prune unused Docker objects](https://docs.docker.com/config/pruning/)
 
-  其中也包括了处理中间镜像与"dangling"镜像。
+其中也包括了处理中间镜像与"dangling"镜像。
 
-  官文上说，Docker使用一种保守的策略来清理未使用对象（也称为垃圾收集）。这些对象包括镜像、容器、挂载以及网络。
+官文上说，Docker使用一种保守的策略来清理未使用对象（也称为垃圾收集）。这些对象包括镜像、容器、挂载以及网络。
 
-  这些无用的Docker对象会使Docker使用额外的磁盘空间，所以合理的进行断舍离是OK的！
+这些无用的Docker对象会使Docker使用额外的磁盘空间，所以合理的进行断舍离是OK的！
 
-  清理镜像：
+#### 清理镜像：
+
+- 默认清理所有"dangling"镜像
   ```
-  // 默认清理所有"dangling"镜像
   docker image prune
+  ```
 
-  // 清理所有无用镜像，包括<none>:<none>的中间镜像
+- 清理所有无用镜像，包括 `<none>:<none>` 的中间镜像
+  ```
   docker images prune -a
+  ```
 
-  // 清理1天前的镜像
+- 清理1天前的镜像
+  ```
   docker image prune -a --filter "until=24h"
   ```
 
-  清理容器：
+#### 清理容器：
+- 默认清理所有已停止容器
   ```
-  // 默认清理所有已停止容器
   docker container prune
+  ```
 
-  // 清理1天前的已停止容器
+- 清理1天前的已停止容器
+  ```
   docker container prune --filter "until=24h"
   ```
 
-  清理挂载：
+#### 清理挂载：
+- 清理没有任何容器使用的挂载
   ```
-  // 清理没有任何容器使用的挂载
   docker volume prune
+  ```
 
-  // 清理没有贴"keep"标签的挂载
+- 清理没有贴"keep"标签的挂载
+  ```
   docker volume prune --filter "label!=keep"
   ```
 
-  清理网络：
+#### 清理网络：
+- 清理没有任何容器使用的网络
   ```
-  // 清理没有任何容器使用的网络
   docker network prune
+  ```
 
-  // 清理1天前的无用网络
+- 清理1天前的无用网络
+  ```
   docker network prune --filter "until=24h"
   ```
 
-  清理以上所有类型的垃圾：
-  ```
-  // 相当于执行 docker image prune、docker container prune、docker volume prune、docker network prune
-  docker system prune
-  ```
+#### 清理以上所有类型的垃圾：
+除了针对性的清理镜像、容器、挂载和网络对象，还可通过命令一次性清理：
+```
+docker system prune
+```
+
+该命令相当于一次性执行：
+```
+docker image prune
+docker container prune
+docker volume prune
+docker network prune
+```
 
 ### 参考文档
 
