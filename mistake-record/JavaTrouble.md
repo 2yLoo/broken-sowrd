@@ -137,3 +137,85 @@ public MongoDbFactory mongoDbFactory() throws Exception {
     return super.mongoDbFactory();
 }
 ```
+
+## Mongo Repository 查询过慢
+在使用Spring Clouds微服务时，某个服务调用失败，通过Feign熔断打印异常。后通过Postman直接调用该服务器接口，虽然可以返回数据，但响应时间非常长。也是这个原因导致熔断触发。
+
+在代码中插入日志监控该接口中各个方法请求时间，发现某个方法访问数据库时耗时 20-30 秒！
+
+数据库为MongoDB，当前该集合中一共有1200+w条记录。查询时携带的字段与排序字段都加了索引。通过MongoDB客户端直接查询耗时也很短，于是把问题定位到该访问方法上。
+
+该方法是通过继承MongoRepository后编写的接口方法，没有进行实现（由框架实现），具体如下：
+```
+public interface MomentRepository extends MongoRepository<Moment, String>, UpdateOperations<Moment>, FindOperations {
+    /**
+     * 分页获取用户发布的动态
+     *
+     * @param userId   用户id
+     * @param status   动态状态
+     * @param type     动态类型
+     * @param date     发布时间
+     * @param pageable 分页传入参数
+     * @return 分页动态结果
+     */
+    Page<Moment> findAllByUserIdAndStatusInAndTypeAndPublishTimeBeforeOrderByPublishTimeDesc(String userId, List<Integer> status, Integer type, Date date, Pageable pageable);
+
+}
+```
+
+该方法的调用处实际需求是查询 **指定个数** 的动态集，而如果想使用Repository特性编程，在方法中需要构造Pageable参数，并将size传入其中。（伏笔）
+
+换成MongoTemplate实现：
+```
+public List<Moment> customFind(String userId, List<Integer> status, Integer type, Date date, Pageable pageable) {
+    Query query = new Query();
+    Sort sort = new Sort(Sort.Direction.DESC, "publishTime");
+    query.addCriteria(
+            Criteria.where("userId")
+                    .is(userId).and("status")
+                    .in(status).and("type")
+                    .is(type).and("publishTime").lt(date)).with(pageable).with(sort);
+    return mongoTemplate.find(query, Moment.class);
+}
+```
+
+之前提到实际需求是获取List\<Moment>，而不是Page\<Moment>。切换实现方式后，接口响应时间迅速缩短到30ms左右。
+
+为了更深入的了解两种实现方式的区别，开启了Spring Mongo Data的DEBUG日志，即在配置文件中加入下面的配置：
+```
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core: DEBUG
+```
+
+但两种实现方式的调试日志相同：
+```
+// Repository
+10:59:57.285 [http-nio-9004-exec-2] DEBUG o.s.data.mongodb.core.MongoTemplate - find using query: { "userId" : "test", "status" : { "$in" : [1, 2, 3] }, "type" : 0, "publishTime" : { "$lt" : { "$date" : 1563343181779 } } } fields: Document{{}} for class: class com.tcl.mibc.social.common.entity.Moment in collection: moment
+
+// MongoTemplate
+10:59:57.285 [http-nio-9004-exec-2] DEBUG o.s.data.mongodb.core.MongoTemplate - find using query: { "userId" : "test", "status" : { "$in" : [1, 2, 3] }, "type" : 0, "publishTime" : { "$lt" : { "$date" : 1563343181779 } } } fields: Document{{}} for class: class com.tcl.mibc.social.common.entity.Moment in collection: moment
+```
+
+仔细比较两种实现，前者（Repository）的返回参数中还会返回总条数。后通过jstack查看方法调用，发现该方法会隐式的调用cout方法，这也是造成该方法请求速度过慢的原因。
+
+但由于大部分地方都用到了MomentRepository特性，想尽量减少MongoTemplate实现，否则项目结构会变复杂。
+
+在查阅 [Spring Data MongoDB](https://docs.spring.io/spring-data/mongodb/docs/2.1.9.RELEASE/reference/html/) 文档时，如要使用方法命名的方式访问数据库，可通过两种方式限制返回集合数量大小：
+```
+// 1. 通过TopX或FirstX命名
+List<T> findTop10ByUserIdIn(List<String> ids)
+
+// 2. 传入Pageable参数
+Page<T> findAllByUserIdIn(List<String> ids, Pageable pageable)
+```
+其中第一种方式适用于查询固定数量的集合，不易于扩展，第二种方式扩展性好，但返回 `Page` 对象时，会做一次 `count` 操作查询符合条件的元素个数。
+
+本来想通过 `@Query` 注解自定义查询，后经过尝试，直接修改方法的返回类就可以解决当前问题：
+```
+List<Moment> findAllByUserIdAndStatusInAndTypeAndPublishTimeBeforeOrderByPublishTimeDesc(String userId, List<Integer> status, Integer type, Date date, Pageable pageable);
+```
