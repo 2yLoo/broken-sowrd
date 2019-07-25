@@ -38,3 +38,29 @@ Credentials cache I/O operation failed XXX
 此时监控日志仍无新日志输出。
 
 后新建软链接`sudo ln -s /data/docker /var/lib/docker`，并重启Docker服务`sudo service docker restart`，日志正常输出。
+
+## Docker \<none>:\<none> 镜像
+在使用 docker-compose 命令构建服务时，经常要用到命令 `docker-compose pull` 。该命令会从远端拉取指定的镜像，并覆盖本地镜像。常在服务更新迭代时使用。如果我们在更新镜像时，总是选择一个tag（例如latest），那么旧镜像不会被移除，而是以另一种方式存在在服务器上：
+```
+$ docker images
+REPOSITORY                              TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
+your.docker-hub.com/demo/demo-service   test                49f3d67cebc0        2 hours ago         695.1 MB
+<none>                                  <none>              c209bdee54d2        6 days ago          691 MB
+your.docker-hub.com/demo/demo-service   latest              c61dbf117f27        2 weeks ago         691 MB
+```
+
+像上面留下来的镜像 `c209bdee54d2` ，属于在构建镜像时，旧镜像被替换后变成的"dangling"镜像。
+> PS: dangling暂未找到合适的翻译
+
+在 `docker-compose --help` 以及[Compose官方文档](https://docs.docker.com/compose/)中，都没有指令与参数可以在pull时删除"dangling"镜像，或者通过简单指令删除"dangling"镜像。硬核删除方式如下：
+```
+docker rmi image_id1 image_id2 ...
+```
+如果不及时维护，久而久之，服务器上的"dangling"镜像越来越多，令人抓狂。
+
+通过嵌套指令，可以达到删除"dangling"的\<none>:\<none>镜像目的：
+```
+docker rmi $(docker images -f "dangling=true" -q)
+```
+
+这样可以将"dangling"镜像删除，而不会删除同样为\<none>:\<none>的中间镜像（有益，用于构建更复杂镜像）。
