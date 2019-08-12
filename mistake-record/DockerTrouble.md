@@ -1,4 +1,4 @@
-## Docker撑爆系统盘
+## Docker撑爆系统盘①
 
 #### 细节
 无法`kinit`以及切换`work`权限，大致异常如下：
@@ -64,3 +64,79 @@ docker rmi $(docker images -f "dangling=true" -q)
 ```
 
 这样可以将"dangling"镜像删除，而不会删除同样为`<none>:<none>`的中间镜像（有益，用于构建更复杂镜像）。
+
+## Docker撑爆系统盘②
+当我们未将docker目录挂载到/data下时，可能造成磁盘爆满的灾难。而Docker中还有另一种日志的隐患，可能塞满磁盘。
+
+#### 问题发现
+将业务服务部署到Docker后，业务服务的日志记录量并没有改动，请求量也与往常相似，但通过命令 `df -h` 查看磁盘使用情况时，发现磁盘使用情况比以往要高。服务器并无其他服务，唯一变量即项目Docker化。后使用docker-compose停止并删除容器，再重新部署时，磁盘使用量有所下降。因此怀疑容器中有大量占空间日志。
+
+当对文件进行全局搜索时，发现在/data/docker/目录下有一个文件大小已达到70+G：
+```
+sudo find /  -type f -size +100000000c -exec du -sh {} \;
+```
+
+其名称格式为 **hashcode-json.log** 。将其删除后磁盘使用量恢复正常。
+
+#### 解决
+针对该日志文件，我们无法保证充沛的精力定时去处理它。面对这样的问题，要分两种情况处理：
+##### 高版本Docker(V1.12+)
+在Docker V1.12版本后，用户可以创建 **daemon.json** 文件对Docker Engine进行配置。以下为解决步骤：
+1. 创建或在已有 daemon.json 文件上添加一下内容：
+```
+{
+    "log-opts": {
+        "max-size": "1G"
+    }
+}
+```
+
+2. 重启服务
+```
+sudo service docker restart
+```
+
+3. 重启容器
+```
+略
+```
+
+除了全局配置，也可在启动时加上参数：
+```
+docker run -d --log-opt max-size=1g nginx
+```
+
+如果我们使用 `docker-compose` 启动服务，则可在 `docker-compose.yml` 中进行以下配置：
+```
+nginx:
+  image: nginx:1.12.1
+  restart: always
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+```
+> **前提是docker-compose版本为2+**
+
+##### 低版本Docker
+目前在低版本中未从官方渠道获取到可靠的解决方案。
+
+以下解决方案偏硬核一点：
+1. 编写脚本 `del-docker-log.sh`：
+```
+#!/bin/sh
+echo "======== start clean docker containers logs ========"
+logs=$(sudo find /var/lib/docker/containers/ -name *-json.log)
+for log in $logs
+        do
+                echo "clean logs : $log"
+                echo "sudo cat /dev/null > $log" | sudo sh
+        done
+echo "======== end clean docker containers logs ========"
+```
+在线上服务器中我们可能并没有root权限，而当我们使用 `sudo service docker start` 启动Docker时，容器日志文件仅有root有权访问，我们可以使用 `echo "sudo cat /dev/null > $log" | sudo sh` 以sudo权限清理日志。
+2. 通过定时任务执行该脚本
+```
+// 每天零点清理容器日志
+0 0 * * * /data/script/del-docker-log.sh > /dev/null 2>&1
+```

@@ -139,17 +139,16 @@ Docker仓库默认仅支持HTTPS协议的请求，这也是出于保护仓库安
 我新建的Docker第三方仓库（Harbor）暂没配置HTTPS证书，于是需要在客户端进行额外的配置才可使用HTTP请求连接仓库。
 
 ###### 解决办法1
-在`/etc/docker/`目录下，如果没有`daemon.json`文件，就新建一个，如果已有，则通过vim命令添加配置，添加内容如下：
+当Docker版本大于 V1.12 时，可进入`/etc/docker/`目录，如果没有`daemon.json`文件，就新建一个，如果已有，则通过vim命令添加配置，添加内容如下：
 ```
 {
     "insecure-registries": ["your.docker-hub.com"]
 }
 ```
-
-执行`service restart docker`后，登录仍然报错。很可能是docker启动时没有扫描此配置文件。
+然后执行`service restart docker`重启Docker服务即可。
 
 ###### 解决办法2
-找到docker的配置文件`/etc/sysconfig/docker`，打印其原有内容是这样的：
+当Docker版本不高，配置 `daemon.json` 是无效的。正确的做法是找到docker的配置文件`/etc/sysconfig/docker`，打印其原有内容是这样的：
 ```
 # /etc/sysconfig/docker
 #
@@ -160,15 +159,7 @@ Docker仓库默认仅支持HTTPS协议的请求，这也是出于保护仓库安
 other_args=""
 ```
 
-我新增参数后重启Docker仍然失效，当时配置如下：
-```
-ADD_REGISTRY='--add-registry your.docker-hub.com'
-INSECURE_REGISTRY='--insecure-registry your.docker-hub.com'
-
-other_args=""
-```
-
-最终解决方法为：
+在 `other_args` 中加入以下内容：
 ```
 other_args="--insecure-registry your.docker-hub.com"
 ```
