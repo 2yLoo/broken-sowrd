@@ -104,7 +104,9 @@ ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar", "-Dspring.p
 
 Docker的安装可参考[官方文档](https://docs.docker.com/install/linux/docker-ce/centos/)，我的另一篇MD也提到了安装步骤（[Here](https://github.com/2yLoo/broken-sowrd/blob/master/open-sources/docker/FirstInDocker.md)）。
 
-在此服务器中安装Docker后，需验证镜像的push是否可正常使用。
+在此服务器中安装Docker后，最好验证一下镜像是否可正常push到Registry中。这样在整个流程出问题时，可缩小问题范围。
+
+我在Docker使用过程中也遇到一些问题，将其解决方案整理在了文后。
 
 验证成功后，即可回到Jenkins网站构建项目。
 
@@ -143,7 +145,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 >
 > `sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose`
 
-接着登录到Registry中，命令为：`docker login your.docker-hub.com`，如遇HTTPS的问题，可参考前面 错误记录->支持HTTP请求Docker仓库私服。
+接着登录到Registry中，命令为：`docker login your.docker-hub.com`，如遇HTTPS的问题，可参考后文错误记录中对应的解决方案。
 
 登录成功后，即可使用`docker-compose`命令从远程仓库拉下镜像并运行。
 
