@@ -18,7 +18,7 @@ Controller代码：
 @RestController
 public class HelloController {
   @RequestMapping("/hello")
-  public ResponseResult hello() {
+  public String hello() {
     return "Hi!";
   }
 }
