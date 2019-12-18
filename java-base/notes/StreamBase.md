@@ -1,6 +1,6 @@
-## Stream 基础
+# Stream 基础
 
-### 基础介绍
+## 基础介绍
 Stream（流）是Java8版本的一个新特性。学习流时需与I/O中的输入输出流区别开来。
 
 操作流让我们的关注点从“怎么做”转移到了“做什么”。它有很高的可读性，代码量也少于以往的循环迭代方式。并且，Java8针对流提供了许多十分便捷的调用方法，例如排序（sorted）、查找元素（max/min/findFirst···）、收集（collect）等。
@@ -54,9 +54,9 @@ public List<String> method() {
 - 中间操作：对流执行该类型操作会返回一个新的流，例如 filter、distinct、limit等；
 - 终结操作：对流执行该类型操作会返回一个非流值，例如 forEach、sum、collect等。
 
-### 基础应用
+## 基础应用
 
-#### 获取流
+### 获取流
 - 从集合获取流
 ```
 public void method() {
@@ -99,7 +99,7 @@ public void method() {
 ```
 获取无限流的重点是 `Stream.generate(Supplier s)`，在例子中我们产生的是一个(0,1)之间的小数无限流。
 
-#### 中间操作
+### 中间操作
 - 元素过滤
 ```
 public void method() {
@@ -180,7 +180,7 @@ public void method() {
 ```
 `peek()` 方法会将流中的元素传递给action方法中。
 
-#### 终结操作
+### 终结操作
 - 执行方法
 ```
 public void method() {

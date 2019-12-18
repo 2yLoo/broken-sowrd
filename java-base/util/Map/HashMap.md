@@ -1,4 +1,4 @@
-## HashMap
+# HashMap
 
 HashMap是一种极高效率的Map实现，它允许键为null，但只接受一个null键。在Java7中，HashMap由 **数组 + 链表** 实现，而Java8中其实现改为了 **数组 + 链表/红黑树**。有时我们也称其数组为*桶*。
 
@@ -17,7 +17,7 @@ HashMap的构造器可以指定其容量与负载因子。
   }
   ```
 
-- 负载因子：对桶的利用率。**负载因子的大小影响到HashMap的空间利用率和访问效率。**负载因子过低会产生许多空桶，从而造成资源的浪费；而因子过高则会造成链表过长，影响访问的效率。默认值0.75是一种空间和时间成本的折中。
+- 负载因子：对桶的利用率。 **负载因子的大小影响到HashMap的空间利用率和访问效率。** 负载因子过低会产生许多空桶，从而造成资源的浪费；而因子过高则会造成链表过长，影响访问的效率。默认值0.75是一种空间和时间成本的折中。
 
 以默认值容量16与负载因子0.75f来说，当HashMap实际元素个数等于12(16*0.75f)时，添加新元素Map会自动扩容为32(原容量两倍)。
 
@@ -45,7 +45,7 @@ static final int hash(Object key) {
 }
 ```
 
-#### Java7中HashMap实现
+## Java7中HashMap实现
 HashMap在Java7中的实现比较简单，存储在HashMap中的键值对名为Entry，源码中桶和Entry的定义如下：
 ```
 transient Entry<K,V>[] table = (Entry<K,V>[]) EMPTY_TABLE;
@@ -67,7 +67,7 @@ put()方法也会先确认传入的key是否已存在，步骤与get()相似，�
 
 有兴趣的童靴可以从源码中查看其具体实现。😁
 
-### Java8中的HashMap实现
+## Java8中的HashMap实现
 相比于Java7的HashMap，Java8的HashMap效率更高（~~可惜可读性下降严重~~）。在最乐观的情况下我们访问每个key的复杂度都为1，此时每个桶内最多只有一个元素，我们只需要计算key对应的桶索引即可定位到该键值对。但事不尽如人意，很多时候我们无法控制桶中元素个数。所以其访问的复杂度就受到了桶内元素的数据结构影响。**Java8在桶中引入了红黑树（复杂度为logN），在链表（复杂度为N）长度超过8时将其优化为红黑树。**
 
 下面是Java8中的桶与Entry部分源码：
@@ -219,7 +219,7 @@ final TreeNode<K,V> putTreeVal(HashMap<K,V> map, Node<K,V>[] tab,
 
 put和remove都有可能破坏原有红黑树的平衡，这一部分通过内部的balanceInsertion和balanceDeletion方法来保持红黑树的平衡，在此不进行扩展，思想与TreeMap类似。在TreeMap的介绍中我们再进行平衡的展开。
 
-### HashMap的遍历
+## HashMap的遍历
 HashMap提供了对EntrySet、KeySet、Values的访问，根据具体场景我们可以直接获取相应的Set进行遍历。直接获取键值的方法有2种：
 
 - 通过Iterator进行遍历

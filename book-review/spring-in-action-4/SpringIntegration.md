@@ -1,6 +1,6 @@
-## Spring集成
+# Spring集成
 
-### 使用远程服务
+## 使用远程服务
 远程调用是客户端与服务端之间的会话，即我们经常听到的RPC（Remote Procudure Call）。它与本地方法类似，都是同步操作，会阻塞代码执行，直到调用过程执行结束。我们使用Java开发时可选择不同类型的PRC技术：
 - 远程方法调用（Remote Method Invocation，RMI）
 - Caucho的Hessian和Burlap
@@ -30,7 +30,7 @@ Spring针对这几种模型提供了风格一致，掌握了其中一种模型�
 
 注意：**参与远程服务传输的类需要实现序列化**
 
-#### RMI
+### RMI
 RMI是一个具有历史的RPC技术，从JDK1.1开始即被引入到Java中。下面直接通过代码来展示其用法：
 
 1. 在公共模块准备接口与传输实体类
@@ -152,21 +152,21 @@ public class ClientTest extends RpcClientApplicationTests{
 
 RMI虽然可实现远程服务交互，但其使用受防火墙限制，并且要求客户端与服务端都使用相同Java版本开发（RMI使用了Java的序列化机制）。Caucho公司提供了两种解决方案：Hessian与Burlap，它们解决了防火墙问题，使用私有的序列化机制。
 
-#### Hessian 和 Burlap
+### Hessian 和 Burlap
 它们都基于HTTP协议实现。Hessian使用二进制协议，可移植到其他非Java语言的应用中；Burlap基于XML实现，可支持所有能解析XML的语言上。因为其消息传输协议不同，Hessian在带宽上更具优势，而Burlap的可读性更好。
 
 配置步骤与RMI相似，需将对应的服务端Exporter与客户端ProxyFactoryBean替换为HessianServiceExporter/BurlapServiceExporter、HessianProxyFactoryBean/BurlapProxcyFactoryBean。在上面RMI的例子中，客户端访问DemoService时是无法感知其是否是一个远程服务的，这也是面向接口编程的实际应用。当我们切换为Hessian或Burlap时，只需在远程服务的暴露与接入过程动刀。后面介绍到的其他RPC模型也是如此。
 
 也许历史上Hessian与Burlap的确有辉煌的时候，毕竟它解决了部分RMI用户的痛点，但也由于其私有序列化机制，在9102年的现在，它们已经是一个没那么热门的技术，Spring Web可以解决客户端与服务端之间的通信，而服务端内部如果需要远程调用，也有如今大热的Spring Cloud与Dubbo框架任君选择。所以在此不展示Hessian与Burlap的实战案例。但RPC模型的历史进阶过程还是值得了解一下。
 
-#### HttpInvoker
+### HttpInvoker
 Spring 的HTTP invoker填补了Hessian与Burlap的空白，它也基于HTTP实现（解决了RMI防火墙问题），并使用Java的序列化机制（解放了Hessian与Burlap的序列化痛点）。
 
 使用时对应的服务端Expoter为HttpInvokerServiceExporter，客户端Proxy为HttpInvokerProxyFactoryBean。
 
 不过HTTP invoker并不是没有缺点，它由Spring提供，使用Java的序列化机制，要求客户端与服务端的Java版本相同。
 
-#### JAX-WS
+### JAX-WS
 JAX-WS全称为Java API for XML Web WebService。其远程服务被称为端点，端点的声明周期由JAX-WS运行时管理，而不是Spring。
 
 它有两个概念：
@@ -177,7 +177,7 @@ JAX-WS全称为Java API for XML Web WebService。其远程服务被称为端点�
 
 虽然远程服务在使用上与本地服务无差，但从本质出发它通常比本地服务更低效（网络传输、序列化等消耗），所以还是应限制其调用来规避性能瓶颈。
 
-### 使用Spring Web创建 REST API
+## 使用Spring Web创建 REST API
 REST：以信息为中心的表属性状态转移（Representational State Transfer），一种围绕资源展开的架构风格。简言之，它就是在客户端与服务端之间，将资源的状态以最适合客户端或服务端的形式进行传输。
 
 REST已成为替换传统SOAP Web服务的流行方案。SOAP关注行为和处理，REST关注要处理的数据。
@@ -245,8 +245,8 @@ Spring还提供了一个RestTemplate模板类，它定义了36个与REST资源�
 
 RestTemplate可以帮助我们实现绝大多数与REST资源交互的操作，而REST只是应用间通信的方法之一，Spring还支持借助消息实现异步通信。
 
-### Spring 异步消息
-#### 什么是异步消息？
+## Spring 异步消息
+### 什么是异步消息？
 前面提到的通信机制都是同步通信：
 
 ![](https://dpzbhybb2pdcj.cloudfront.net/walls5/Figures/17fig01.jpg)
@@ -283,7 +283,7 @@ RestTemplate可以帮助我们实现绝大多数与REST资源交互的操作，�
 
 但并不是说异步通信比同步通信更优，它们的侧重点不同，做选择时还是应贴合实际应用场景选择。
 
-#### 使用JMS
+### 使用JMS
 Java消息服务（Java Message Service, JMS）是一个Java标准，定义了使用消息代理的通用API。Spring通过基于模板类的抽象为JMS功能提供支持，也就是JmsTemplate。
 
 使用传统的JMS与使用JDBC一样，在实现许多简单工作时，也需要不断做重复的获取、释放链接以及捕获异常。Spring提供的JmsTemplate类似于JdbcTemplate，不仅处理了JMSException异常，并且抛出有信息价值的非检查型异常。并且使用它时我们只用关心发送、接收的消息，而无需频繁获取释放连接。
@@ -342,7 +342,7 @@ Java消息服务（Java Message Service, JMS）是一个Java标准，定义了�
 
 JMS是Java应用中主流的消息解决方案，但对Java与Spring开发者来说，JMS并不是唯一的选择。*高级消息队列协议*(Advanced Message Queuing Protocal, AMQP)也得到了Spring的支持。
 
-#### 使用AMQP
+### 使用AMQP
 AMQP有JMS所不具备的一些特性（优点）。
 
 其一，JMS定义的是API规范，JMS的API协议能确保所有的实现都通过通用的API使用，但不能保证某个JMS实现所发送的消息能被不同的JMS实现所使用。AMQP为消息定义了线路层的协议，该协议规范了消息的格式，消息的生产者与消费者都会遵循此格式，从而AMQP在协作方面要更强大，它不仅能夸不同的AMQP实现，还能跨语言和平台。
@@ -413,15 +413,15 @@ public class DemoReceiver {
 
 AMQP中的消费者关注点仍然为队列，但消息到达队列前的步骤发生变化，我们通过配置类来配置各个Exchange，在这个节点上将预配置好每个Exchange处理的routing key与队列，而生产者的关注点则从队列转移到routing key上。
 
-### 使用WebSocket和STOMP实现消息功能
+## 使用WebSocket和STOMP实现消息功能
 WebSocket协议提供了通过套接字实现 **全双工通信** 的功能，允许服务器与浏览器之间互相发送消息。通过配置Handler自定义消息处理器，配置类添加@EnableWebSocket注解。
 
 WebSocket依赖浏览器与防火墙对其的支持。SockJS可在WebSocket不可用时提供备用方案。而WebSocket与SockJS都是偏原始的通信。Spring支持基于WebSocket使用STOMP消息协议。
 
-#### STOMP（Simple Text Oriented Messaging Protocal）
+### STOMP（Simple Text Oriented Messaging Protocal）
 类似于JMS或AMQP，通过中间件转发客户端与服务端之间的异步消息。可使用RabbitMQ、ActiveMQ等作为其消息代理中继。使用@SubscribeMapping异步实现请求-响应模式。
 
-### Spring发送邮件
+## Spring发送邮件
 Spring Email抽象的核心是MailSender接口。
 
 发邮件之前，应用需要知道邮件服务器是什么，如果服务器需认证，还需要账户密码，这都可以通过配置类加载进项目：
@@ -491,7 +491,7 @@ public class EmailUtil {
 }
 ```
 
-### 管理Spring Bean
+## 管理Spring Bean
 Spring的DI（依赖注入）可以在应用中配置bean属性，但对于已经部署并正运行的应用，单独使用DI无法改变应用的配置，这时需要使用Java管理扩展（Java Management Extensions, JMX）。JMX的核心组件是托管bean（managed bean, MBean）。
 
 这个概念很少在开发过程中提及，可简单理解为我们可以基于某些JMX管理工具在应用运行时对配置的MBean进行展示和访问，以了解正运行的应用程序内部情况，甚至可以远程管理MBean。
@@ -502,7 +502,7 @@ Spring的DI（依赖注入）可以在应用中配置bean属性，但对于已�
 
 除了被动接受外部通信，也可使用JMX通知（JMX notification）进行主动通信。需要发送通知的MBean需实现NotificationPublisherAware接口 ，而需要监听通知的监听器需要实现NotificationListener接口。
 
-### 终章 —— Spring Boot
+## 终章 —— Spring Boot
 **Spring Boot致力于简化Spring本身**
 
 它有4大特性：

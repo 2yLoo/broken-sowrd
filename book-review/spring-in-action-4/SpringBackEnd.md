@@ -1,19 +1,19 @@
-## Spring后端应用
+# Spring后端应用
 通过Web中的Spring章节，我们看到了Spring Web项目中熟悉的Controller。这是我们开发代码的出入口（不严谨），而在其后面，是我们的业务逻辑与数据访问。第三章*后端中的Spring*介绍了Spring持久化的起源与实战应用，通过Spring这个强大的媒介，我们可以更轻松、更专注的执行我们的数据访问操作。
 
 常常我们开发项目时无法摆脱对持久化的依赖。很多时候我们持久化逻辑提炼到一个专司其职的组件中，而不会把它分散并耦合到各个业务单元，这样的专职组件称为DAO/Repository等。为什么不把它直接与业务逻辑写一起呢？我认为数据访问是一个很特性的单元，将它与业务紧耦合会造成业务类过重，不利于我们的复用与重构，并且解耦后的单元颗粒度更细，便于测试与调试。
 
 **接口是实现松耦合的关键**。我们可以“针对接口编程”实现其解耦，这样做的好处是不仅能使代码更清晰，还可很优雅的对数据源进行替换。
 
-### Spring对数据访问提供的支持
+## Spring对数据访问提供的支持
 Spring帮我们解决了数据访问的第一大忙，即是对数据库访问异常的动刀。使用原始的JDBC操作数据库时，需要我们捕获许多信息量并不大的异常，以及一些捕获后无法当即解决的异常。Spring JDBC捕获了来自JDBC的异常，然后重新抛出更有信息量的非检查型异常。这不仅解决了前时代不用Spring手撕数据库时异常渗透的痛点，还可以缩小我们在排查时的问题范围。书中提到：**如果无法从SQLException中恢复，那为什么我们还要强制捕获它呢？** 我认为这句话也蕴含了Java Exception机制的哲学。
 
 JDBC是一种偏底层的访问方式，它建立在SQL之上，虽然它让我们与数据库之间薄如蝉翼，但以此为代价我们需要编写代码获取连接、释放链接以及捕获异常等，从而锐减我们的开发效率。Spring JDBC将其封装，将样板代码囊入其中，站在巨人的肩膀上，我们使用JdbcTemplate模板类可以友好便捷的操作数据库。在开发过程中，当我避免不了考虑一些本不该我关注的事情，我总会寻找机会借助框架的力量。
 
 除了JDBC，Spring也提供了类似于Hibernate、iBATIS以及JPA（Java Persistence API）等框架的集成。除了MySQL等关系型数据库，Spring对NoSQL技术的处理也是游刃有余。
 
-### Spring操作关系型数据库
-#### Spring集成Hibernate
+## Spring操作关系型数据库
+### Spring集成Hibernate
 除了基本的对象关系映射，Hibernate还提供了缓存、延迟加载、预先抓取等功能。
 > 延迟加载（Lazy loading）：选择性的获取对象的数据，而非一次性全量的数据。这样可以避免获取某些不必要数据时的开销。
 >
@@ -31,7 +31,7 @@ org.springframework.orm.hibernate4.LocalSessionFactoryBean
 
 虽然Hibernate很强大，但它已逐渐淡出开发者的视野。
 
-#### Spring Data JPA
+### Spring Data JPA
 在Spring Data JPA的帮助下，通过继承JpaRepository接口，就可使我们的接口获取部分数据操作能力。如果我们不满足于此，可在接口中自定义方法来进一步满足我们的需求。Spring又一次强有力的解放了我们的双手，作为交换，我们的方法名需符合指定的命名规范。但即便如此，这种能力使用起来就像Apple的Siri一样便捷。
 
 下面的例子展示了一个自定义Repository通过继承JpaRepository的方式来访问数据库：
@@ -89,9 +89,9 @@ find   User     By     CountryOrRegionOrderByAgeASC
   ```
   至此我们的自定义实现就完成了。
 
-### Spring操作非关系型数据库
+## Spring操作非关系型数据库
 非关系型数据库即NoSQL(另一种称法为Not only SQL)，其结构易于扩展，性能优越，Spring Data也提供了对多种NoSQL的支持。
-#### Spring Data MongoDB
+### Spring Data MongoDB
 MongoDB作为文档型NoSQL的经典实现，自然逃不过Spring的“魔爪”。Spring Data MongoDB提供了3种方式在Spring应用中使用MongoDB：
 - 通过注解实现对象-文档映射
 - 使用MongoTemplate实现基于模板的数据库访问
@@ -194,7 +194,7 @@ public interface UserRepository extends MongoRepository<User, String> {
 ```
 例子中@Query中对应更改为Mongo的查询语句，**但参数索引由0开始，而JPA中由1开始，并且无法通过@Query进行更新操作。** 更新操作只能由扩展接口的方式实现。（博文中Spring Data MongoDB版本为2.1.6.RELEASE，我认为无法通过方法名以及注解来实现更新操作是该框架的一大痛点，期待后期版本实现此功能）
 
-#### Spring Data Neo4j
+### Spring Data Neo4j
 Neo4j是一种图形数据库，以图形结构的形式存储数据。
 
 如果将Neo4j作为应用的一部分，而不是独立服务，可做如下配置：
@@ -237,7 +237,7 @@ Spring Data Neo4j提供的注解很全面：
 
 Spring中Neo4j的使用与Mongo相似，支持简单粗暴的Repository，也支持@Query注解以及模板类Neo4jOperations的访问形式。
 
-#### Spring Data Redis
+### Spring Data Redis
 Redis是一种Key-Value键值对类型的NoSQL，它的基础数据结构很简单，包括常用的String、List、Hash、Set、ZSet以及扩展了String的BitMap与HyperLogLog。相对于MongoDB、Neo4j等数据库结构，其键值对结构更加简单，因此也不依赖通过Repository访问数据库。
 
 Spring Data Redis为4种Redis客户端实现了连接工厂，这4种客户端分别为：
@@ -300,7 +300,7 @@ public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisC
 
 从各类NoSQL的集成可以看出，Spring Data可以让我们在应用中极大的减少数据源切换带来的代码变动。
 
-### 缓存数据
+## 缓存数据
 缓存可以存储经常会用到的信息，这样每次需要的时候，这些信息都是立即可用的，从而提高数据获取速度，并减少数据库压力。
 
 Spring不提供缓存的实现，仅提供对缓存的声明式支持。如果不利用切面实现缓存，我们的代码逻辑很可能是这样的：
@@ -326,7 +326,7 @@ public String find(String key) {
 ```
 它具体是如何办到的呢？
 
-#### 步骤1. 配置缓存管理器
+### 步骤1. 配置缓存管理器
 在上面的例子中我们没有指定缓存的具体实现，显然我们需要先配置指定好我们用的缓存方案。
 
 Spring3.1内置了5个缓存管理器的实现：
@@ -422,7 +422,7 @@ public CacheManager cacheManager(
 }
 ```
 
-#### 步骤2. 使用缓存注解
+### 步骤2. 使用缓存注解
 Spring提供了4个缓存注解：
 
 | 注解        | 描述                                                                   |
@@ -484,7 +484,7 @@ public class SuperVIPServiceImpl implements SuperVIPService {
 ```
 注解缓存通过切面的形式与业务逻辑密切配合，同步完成了会员信息的读取、写入、删除功能。
 
-### 保护方法应用
+## 保护方法应用
 上一章最后提到的对方法级别的保护与过滤即下面要介绍的几种注解：
 - @Secured，来自Spring Security
 - @RolesAllowed，来自JSR-250
