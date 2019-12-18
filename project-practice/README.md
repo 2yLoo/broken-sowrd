@@ -13,5 +13,3 @@
 ### 其他
 
 - [MySQL环境迁移](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/MySQLMigration.md)
-
-- [Redis安装爬坑](https://github.com/2yLoo/broken-sowrd/blob/master/project-practice/RedisInstall.md)
