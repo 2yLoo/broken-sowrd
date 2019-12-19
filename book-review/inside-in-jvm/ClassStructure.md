@@ -305,7 +305,7 @@ public void demo() {
 ```
 
 ### 对象创建与访问指令
-- 创建类实力的指令：new。
+- 创建类实例的指令：new。
 - 创建数组的指令：newarray、anewarray、multianewarray。
 - 访问类字段和实例字段的指令：getfield、putfield、getstatic、putstatic。
 - 把一个数组元素加载到操作数栈的指令：baload、caload、saload、iaload、laload、faload、daload、aaload。
