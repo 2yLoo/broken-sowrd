@@ -237,7 +237,7 @@ code_length代表字节码指令的长度，单位为u4。理论上说字节码�
 #### ConstantValue
 ConstantValue属性的作用是通知虚拟机自动为静态变量赋值。只有类变量（被static修饰）才可使用这项属性。
 
-代码 `int x = 1` 和 `static int x = 1`的区别不仅仅是表面的 static 修饰符。它们在虚拟机中的赋值方式以及时机都不相同。对于前者（实例变量），赋值操作是在实例构造器 `\<init>` 方法中进行的；而给后者（类变量）赋值的方式有两种：在类构造器 `\<clinit>` 方法中，或者使用 ConstantValue 属性。目前Sum Javac编译器的做法是：同时满足以下几个条件的变量会生成ConstantValue属性来初始化，否则使用类构造器 `\<clinit>` 方法进行初始化：
+代码 `int x = 1` 和 `static int x = 1`的区别不仅仅是表面的 static 修饰符。它们在虚拟机中的赋值方式以及时机都不相同。对于前者（实例变量），赋值操作是在实例构造器 `\<init>` 方法中进行的；而给后者（类变量）赋值的方式有两种：在类构造器 `\<clinit>` 方法中，或者使用 ConstantValue 属性。目前Sum Javac编译器的做法是： **同时** 满足以下几个条件的变量会生成ConstantValue属性来初始化，否则使用类构造器 `\<clinit>` 方法进行初始化：
   1. 使用final修饰
   2. 使用static修饰
   3. 数据类型为基本类型或 java.lang.String
