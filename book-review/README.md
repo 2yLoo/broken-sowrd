@@ -14,7 +14,8 @@
 
 ## Java相关
 - [📗 《Spring实战（第四版）》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/spring-in-action-4)，基于Spring应用的实战指南，面向新人友好。
-- [📘 《深入理解Java虚拟机》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/inside-in-jvm)，JVM是Java程序员进阶必经之路，可以通过这本书从易懂的角度收获到深层次的知识，相对于我的知识不够扎实，不懂的地方多啃几次，都会有更深的收获。
+- [📗 《深入理解Java虚拟机》](https://github.com/2yLoo/broken-sowrd/tree/master/book-review/inside-in-jvm)，JVM是Java程序员进阶必经之路，可以通过这本书从易懂的角度收获到深层次的知识，相对于我的知识不够扎实，不懂的地方多啃几次，都会有更深的收获。
+- 📘 《实战Java虚拟机》，这本书与《深入理解Java虚拟机》之间内容相关性很大，但是剖析角度、深度各有取舍，结合《深入理解Java虚拟机》一起看，不仅能继续巩固加深印象，还能查漏补缺填充知识漏洞。
 - 📘 《Java并发编程实战》，这本书的含金量充斥在字里行间，不仅值得对书进行整理，还应该再刷以汲取其更多养分。
 - 📙 《重构——改善既有代码的设计》，写给机器看懂的是语言，写给人看懂的是艺术。
 - 📙 《Java编程思想》，有助于巩固Java基础知识，一刷许多疑惑，吸收效果有限，需二刷三刷。
