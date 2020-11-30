@@ -35,10 +35,12 @@
 - [📗 《Redis深度历险》](https://github.com/2yLoo/broken-sowrd/blob/master/open-sources/Redis/WhyRedisFast.md)，看过Redis官方文档 ? 巩固与查漏补缺 : 打开Redis大门的钥匙 。
 - 📘 《高性能MysQL》，以一个相对较高的起点讲述了提高MySQL服务性能的方方面面，需要一定的MySQL基础。
 - 📘 《MongoDB权威指南》，用专业角度与紧扣的章节帮助开发者了解、学习、深入MongoDB。
+- 📕 《MySql技术内幕》
 
 ## 网络
 - 📘 《HTTP权威指南》，围绕HTTP展开了许多细节内容，对于了解、巩固HTTP都是不错的选择。
 - 📘 《图解HTTP》，以轻松的方式讲解浅显的HTTP知识，面向新人友好。
+- 📕 《TCP/IP详解 卷1》
 
 ## 虚拟机
 - 📕 《Linux内核设计与实现》
