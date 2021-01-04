@@ -51,6 +51,8 @@ mongo               latest              bcef5fd2979d        10 months ago       
 
 然后执行命令`docker run -d -p 27017:27017 --name my-mongo mongo`启动MongoDB容器，该命令会根据刚拉取的mongo镜像部署一个新的容器，容器名为"my-mongo"，对外暴露端口27017，至此MongoDB的部署就完成了。
 
+部署完成之后，执行`docker exec -it my-mongo mongo`即可连接到刚启动的MongoDB服务。
+
 # MongoDB基础
 
 MongoDB会有一些不同于传统SQL的专有名词，但描述的内容是可以通过联想记忆的：
@@ -253,17 +255,17 @@ function(query, fields, options, readConcern, collation) {
 
 ## 创建 & 插入
 
-使用`db.{$collection_name}.insert(...)`可以创建一条文档，其中`{$collection_name}`为具体的集合名，"..."中填入类Json格式的字符串，如`"name":"eco"`。insert区分大小写。
+使用`db.{$collection_name}.insert(...)`可以创建一条文档，其中`{$collection_name}`为具体的集合名，"..."中填入类JSON格式的键值对字符串，如`"name":"eco"`。insert区分大小写。
 
-在MongoDB中，集合是可以自动创建的。在执行`db.coll.insert{"name":"eco"}`时，会在集合"coll"中插入一条"name"为"eco"的数据，如果不存在"coll"集合，则会自动创建。
+在执行`db.coll.insert{"name":"eco"}`时，会在集合"coll"中插入一条"name"为"eco"的数据。在MongoDB中，集合是可以自动创建的，如果不存在"coll"集合，则会自动创建。
 
 在创建一条文档时如果没有指定其"\_id"字段，MongoDB会自动分配一个ID。如果之前接触关系型数据库较多，可能会偏向使用自增类型的主键id，但在MongoDB中不推荐这么做，除非有特定的业务场景要求。
 
-像MySQL一样，也可以为集合添加一些特定索引，添加索引的内容在后文中介绍。
+像MySQL一样，也可以为集合添加一些特定索引，添加索引的内容在新篇章中介绍。
 
 ## 删除
 
-使用`db.{$collection_name}.remove(...)`可以删除指定文档。大多数时候我们要删除的都是满足特定条件的文档，例如"name"等于"eco"。因此在删除命令中，需要添加删除（查询）条件，用类Json表达式进行过滤。
+使用`db.{$collection_name}.remove(...)`可以删除指定文档。大多数时候我们要删除的都是满足特定条件的文档，例如"name"等于"eco"。因此在删除命令中，需要添加删除（查询）条件，用类JSON表达式进行过滤。
 
 执行`db.coll.remove({"name":"eco"})`会删除集合"coll"中"name"等于"eco"的所有文档。在其他MongoDB基本操作，如修改中，也会常用这种方式。
 
@@ -273,7 +275,7 @@ function(query, fields, options, readConcern, collation) {
 
 ## 修改
 
-使用`db.{$collection_name}.remove(...)`可以更新指定文档。与删除不同的是，在方法的"..."中，除了要传入查询条件，还需要执行更新动作。
+使用`db.{$collection_name}.remove(...)`可以更新指定文档。与删除不同的是，在方法的"..."中，除了要传入查询条件，还有需要执行的更新动作。
 
 执行`db.coll.update({"name":"eco"},{"age":2})`会找到集合"coll"中一条名称为"eco"的文档，并将这条文档的 **整个内容替换** 为`{"age":2}`：
 
@@ -298,7 +300,7 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 
 ### 修改器
 
-我们可能希望更新某一个具体字段的值，而不是替换文档，或者希望删除某一个字段，或者其他的更新场景。
+我们可能希望更新某一个具体字段的值，而不是替换全部文档文档。除此之外，在一些特定的修改场景，例如希望删除某一个字段，或者更新文档中的数组内容，修改器会非常有用。
 
 #### $set 修改字段值
 
@@ -345,7 +347,7 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 执行`db.coll.update({"name":"eco"}, {"$push":{"qq":12345}})`会找到集合"coll"中"name"为"eco"的文档，并将12345添加到"qq"中。
 
 #### $each 向数组批量添加元素
-如果需要添加多个"qq"，则可以组合"$push"与"$each"形成新命令：`db.coll.update({"name":"eco"}, {"$push":{"qq":{"$each":[11111,22222]}}})`。这样会将两个号码11111,22222都添加到"qq"中。`update()`的第二个参数已经开始变复杂，为了更好的观察其结构，可以将其进行Json格式化：
+如果需要添加多个"qq"，则可以组合"$push"与"$each"形成新命令：`db.coll.update({"name":"eco"}, {"$push":{"qq":{"$each":[11111,22222]}}})`。这样会将两个号码11111,22222都添加到"qq"中。`update()`的第二个参数已经开始变复杂，为了更好的观察其结构，可以将其进行JSON格式化：
 ```
 {
 	"$push": {
@@ -355,6 +357,8 @@ WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
 	}
 }
 ```
+
+> 这是本文的第一次将参数内容初始化，目的是为了方便观察各个修改器在修改语句中的角色，帮助理解修改器语法，后文也会多次使用这种方式展示方法参数。
 
 #### $slice 保留数组中后n位元素
 如果一个账号只能保留3个"qq"，则在下一次添加新"qq"时，可以通过组合"$push"与"$slice"的方式执行命令：`db.coll.update({"name":"eco"}, {"$push":{"qq":{"$each":[33333,44444], "$slice":-3}}})`，同样将参数格式化的结构如下：
@@ -579,12 +583,14 @@ findAndModify是另一种 **原子** 的更新操作，与update不同的是，f
 
 我认为查询语句是基础操作语法中最重要的一部分，因为查询是更新和删除操作中的前置动作，它们都会使用查询语法来匹配文档，而有时一些特定的场景下，查询并不是像`{"name":"eco"}`这样简单的等于关系，例如像表达年龄大于18或者朋友中包含eco这样的复杂查询。
 
-查询的接口有两个，分别是`find()`和`findOne()`。`find()`会查询返回所有匹配的文档，如果不传入查询条件，则返回集合中的全部文档。`findOne()`会查询集合中第一个匹配查询条件的方法，如果不传入查询条件，则返回集合中的第一个文档。在执行查询时，可以在`find()`或`findOne()`后面加上`.pretty()`，使查询结果格式化为Json格式，文档可读性更高。
+查询的接口有两个，分别是`find()`和`findOne()`。`find()`会查询返回所有（该描述不准确，后文会介绍）匹配的文档，如果不传入查询条件，则返回集合中的全部文档。`findOne()`会查询集合中第一个匹配查询条件的方法，如果不传入查询条件，则返回集合中的第一个文档。在执行查询时，可以在`find()`或`findOne()`后面加上`.pretty()`，使查询结果格式化为JSON格式，文档可读性更高。
 
 find()定义如下：
 ```
 function(query, fields, limit, skip, batchSize, options)
 ```
+
+其中常用的几个字段对应的关系为：
 
 | 参数名    | 作用                                                                                           |
 | --------- | ---------------------------------------------------------------------------------------------- |
@@ -593,7 +599,6 @@ function(query, fields, limit, skip, batchSize, options)
 | limit     | 限定匹配的文档个数量                                                                                   |
 | skip      | 跳过n个 **匹配的** 文档再执行查询                                                              |
 | batchSize | 批量返回的文档大小，当匹配到到文档过多时，并不会被一次返回，可以通过该参数调整每次返回的文档数 |
-| options   |                                                                                                |
 
 ### query 指定查询条件
 
@@ -639,7 +644,7 @@ Error: error: {
 
 ### limit & skip 分页查询的基础
 
-limit和skip可用于分页查找场景，类似于MySQL中`select ... LIMIT offset,limit`，具体用法如下：
+limit和skip可用于分页查找场景，类似于MySQL中`SELECT ... LIMIT offset,limit`，具体用法如下：
 ```
 // 若匹配的文档有10个，则从第0个开始返回2个文档
 > db.coll.find({"name":"eco"},{},2,0)
@@ -685,8 +690,6 @@ Type "it" for more
 { "_id" : ObjectId("5fea1920938232c61bee2ba0"), "name" : "eco", "age" : 21 }
 ```
 
-> it表示iterator，迭代器。
-
 ### 使用sort对结果排序
 
 我们可以根据查询结果的某个字段或者多个字段进行排序。
@@ -701,7 +704,7 @@ Type "it" for more
 db.coll.find({...}).sort({"name":1, "age":-1})
 ```
 
-但MongoDB并没有约束文档中某一个字段的具体类型，所以在排序时，可能碰到不止一个字段类型（我认为这是使用上的问题），但MongoDB考虑了这种情况，并给出了优先级的大小顺序：
+但MongoDB并没有约束文档中某一个字段的具体类型，所以在排序时，可能碰到不止一个字段类型（我认为除了null以外的两种类型混用，极大可能是使用上的问题），但MongoDB考虑了这种情况，并给出了优先级的大小顺序：
 
 1. 最小值
 2. null
@@ -876,8 +879,6 @@ $not可以用于与正则表达式以及其他操作符搭配使用，查询与�
 > db.coll.find({"like":{"$in":[null], "$exists":true}})
 { "_id" : ObjectId("5fea085d938232c61bee2b7f"), "name" : "eco", "age" : 2, "like" : null }
 ```
-
-这在一些时候是很有用的，例如由于业务发展原因，文档（对象）中原来不存在某个字段，加上该字段后，实际场景下存在null值，如果不希望返回没有该字段的文档，则可以使用这种方式查询。
 
 #### 使用正则表达式查询
 
